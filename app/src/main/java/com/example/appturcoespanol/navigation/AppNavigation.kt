@@ -1,16 +1,20 @@
 
 package com.example.appturcoespanol.navigation
 
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.appturcoespanol.model.CategoriaAprendizaje
 import com.example.appturcoespanol.ui.screens.BienvenidaScreen
-import com.example.appturcoespanol.ui.screens.ConfiguracionSesionScreen
 import com.example.appturcoespanol.ui.screens.CategoriasScreen
-import com.example.appturcoespanol.viewmodel.ConfiguracionSesionViewModel
+import com.example.appturcoespanol.ui.screens.ConfiguracionSesionScreen
+import com.example.appturcoespanol.ui.screens.VocabularioScreen
 import com.example.appturcoespanol.viewmodel.CategoriasViewModel
+import com.example.appturcoespanol.viewmodel.ConfiguracionSesionViewModel
+import com.example.appturcoespanol.viewmodel.VocabularioViewModel
 
 @Composable
 fun AppNavigation() {
@@ -24,6 +28,7 @@ fun AppNavigation() {
 
         // Pantalla 1: Bienvenida
         composable("bienvenida") {
+
             BienvenidaScreen(
                 onComenzar = {
                     navController.navigate("configuracion")
@@ -31,7 +36,7 @@ fun AppNavigation() {
             )
         }
 
-        // Pantalla 2: Configuracion de avatar
+        // Pantalla 2: Configuracion
         composable("configuracion") {
 
             val configuracionViewModel:
@@ -58,8 +63,43 @@ fun AppNavigation() {
                 viewModel = categoriasViewModel,
                 onVolver = {
                     navController.popBackStack()
+                },
+                onAbrirLeccion = { categoria ->
+
+                    navController.navigate(
+                        "vocabulario/${categoria.name}"
+                    )
                 }
             )
+        }
+
+        // Pantalla 4: Vocabulario
+        composable("vocabulario/{categoria}") { backStackEntry ->
+
+            val nombreCategoria =
+                backStackEntry.arguments?.getString("categoria")
+
+            val categoria =
+                CategoriaAprendizaje.entries.firstOrNull {
+                    it.name == nombreCategoria
+                }
+
+            if (categoria != null) {
+
+                val vocabularioViewModel:
+                        VocabularioViewModel = viewModel()
+
+                VocabularioScreen(
+                    categoria = categoria,
+                    viewModel = vocabularioViewModel,
+                    onVolver = {
+                        navController.popBackStack()
+                    }
+                )
+
+            } else {
+                Text("Categoría no disponible")
+            }
         }
     }
 }
