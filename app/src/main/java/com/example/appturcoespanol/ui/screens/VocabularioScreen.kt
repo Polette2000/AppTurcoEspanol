@@ -18,29 +18,77 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
+import com.example.appturcoespanol.model.Avatar
 import com.example.appturcoespanol.model.CategoriaAprendizaje
+import com.example.appturcoespanol.tts.TextToSpeechManager
 import com.example.appturcoespanol.viewmodel.VocabularioViewModel
 
 @Composable
 fun VocabularioScreen(
     categoria: CategoriaAprendizaje,
+    avatar: Avatar,
     viewModel: VocabularioViewModel,
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    onAbrirJuego: () -> Unit,
+    onAbrirCamara: () -> Unit
 ) {
 
+    // Obtener el contexto de Android
+    val context = LocalContext.current
+
+    // Administrador para reproducir pronunciaciones
+    val ttsManager = remember(context) {
+        TextToSpeechManager(context)
+    }
+
+    // Estado para mostrar errores de pronunciación
+    var errorPronunciacion by remember {
+        mutableStateOf(false)
+    }
+
+    // Liberar recursos de audio al salir
+    DisposableEffect(ttsManager) {
+        onDispose {
+            ttsManager.liberar()
+        }
+    }
+
+    // Cargar las palabras de la categoría
     LaunchedEffect(categoria) {
         viewModel.cargarCategoria(categoria)
     }
 
+    // Observar el estado del ViewModel
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Mensaje del guardado del progreso
+    val mensajeGuardado by viewModel.mensajeGuardado
+        .collectAsStateWithLifecycle()
+
+    // Detener el audio al cambiar de palabra
+    LaunchedEffect(
+        ttsManager,
+        estado.indiceActual,
+        estado.categoria,
+        estado.completada
+    ) {
+        ttsManager.detener()
+        errorPronunciacion = false
+    }
 
     Column(
         modifier = Modifier
@@ -51,6 +99,7 @@ fun VocabularioScreen(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
+        // Título de la lección
         Text(
             text = "¡Aprendamos! 📚",
             style = MaterialTheme.typography.headlineMedium,
@@ -69,13 +118,13 @@ fun VocabularioScreen(
 
         } else {
 
-            val progreso =
-                if (estado.completada) {
-                    1f
-                } else {
-                    (estado.indiceActual + 1).toFloat() /
-                            estado.palabras.size
-                }
+            // Calcular el progreso de la lección
+            val progreso = if (estado.completada) {
+                1f
+            } else {
+                (estado.indiceActual + 1).toFloat() /
+                        estado.palabras.size
+            }
 
             LinearProgressIndicator(
                 progress = { progreso },
@@ -84,6 +133,7 @@ fun VocabularioScreen(
 
             if (estado.completada) {
 
+                // Mensaje de lección completada
                 Text(
                     text = "🎉",
                     fontSize = 72.sp
@@ -104,11 +154,29 @@ fun VocabularioScreen(
                     textAlign = TextAlign.Center
                 )
 
+                // Mostrar resultado del guardado en DataStore
+                mensajeGuardado?.let { mensaje ->
+                    Text(
+                        text = mensaje,
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                // Repetir la lección
                 Button(
                     onClick = viewModel::reiniciarLeccion,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Repetir lección")
+                }
+
+                // Abrir el minijuego
+                Button(
+                    onClick = onAbrirJuego,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("🎮 Jugar y practicar")
                 }
 
             } else {
@@ -120,6 +188,7 @@ fun VocabularioScreen(
                         style = MaterialTheme.typography.bodyMedium
                     )
 
+                    // Tarjeta de vocabulario
                     Card(
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -146,9 +215,29 @@ fun VocabularioScreen(
                                 text = palabra.turco,
                                 style = MaterialTheme.typography.headlineSmall
                             )
+
+                            // Reproducir la palabra en español
+                            Button(
+                                onClick = {
+                                    errorPronunciacion =
+                                        !ttsManager.hablar(palabra.espanol)
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("🔊 Escuchar en español")
+                            }
+
+                            if (errorPronunciacion) {
+                                Text(
+                                    text = "La voz española no está disponible o todavía no está lista. Inténtalo nuevamente.",
+                                    color = MaterialTheme.colorScheme.error,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
 
+                    // Navegar entre las palabras
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -163,7 +252,9 @@ fun VocabularioScreen(
                         }
 
                         Button(
-                            onClick = viewModel::siguientePalabra,
+                            onClick = {
+                                viewModel.siguientePalabra(avatar)
+                            },
                             modifier = Modifier.weight(1f)
                         ) {
                             Text(
@@ -182,8 +273,17 @@ fun VocabularioScreen(
             }
         }
 
+        // Actividad con la cámara
+        Button(
+            onClick = onAbrirCamara,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("📷 Busca y fotografía")
+        }
+
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Regresar a categorías
         OutlinedButton(
             onClick = onVolver,
             modifier = Modifier.fillMaxWidth()

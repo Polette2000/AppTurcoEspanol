@@ -1,8 +1,6 @@
 
 package com.example.appturcoespanol.ui.screens
 
-import androidx.compose.material3.Button
-import androidx.compose.foundation.layout.height
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -12,10 +10,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -34,7 +34,8 @@ import com.example.appturcoespanol.viewmodel.CategoriasViewModel
 fun CategoriasScreen(
     viewModel: CategoriasViewModel,
     onVolver: () -> Unit,
-    onAbrirLeccion: (CategoriaAprendizaje) -> Unit
+    onAbrirLeccion: (CategoriaAprendizaje) -> Unit,
+    onVerProgreso: () -> Unit
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -48,6 +49,7 @@ fun CategoriasScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
+        // Título principal
         Text(
             text = "¡Vamos a aprender! 🌟",
             style = MaterialTheme.typography.headlineMedium,
@@ -64,6 +66,7 @@ fun CategoriasScreen(
             textAlign = TextAlign.Center
         )
 
+        // Mostrar categorías de aprendizaje
         CategoriaAprendizaje.entries.forEach { categoria ->
 
             val seleccionada =
@@ -77,10 +80,11 @@ fun CategoriasScreen(
                     },
                 border = BorderStroke(
                     width = if (seleccionada) 3.dp else 1.dp,
-                    color = if (seleccionada)
+                    color = if (seleccionada) {
                         MaterialTheme.colorScheme.primary
-                    else
+                    } else {
                         MaterialTheme.colorScheme.outline
+                    }
                 )
             ) {
 
@@ -114,7 +118,7 @@ fun CategoriasScreen(
             }
         }
 
-
+        // Mostrar información de la categoría seleccionada
         AnimatedVisibility(
             visible = uiState.categoriaSeleccionada != null
         ) {
@@ -124,6 +128,7 @@ fun CategoriasScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth()
                 ) {
+
                     Column(
                         modifier = Modifier.padding(20.dp)
                     ) {
@@ -143,20 +148,29 @@ fun CategoriasScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // Botón para abrir vocabulario
                         Button(
                             onClick = {
                                 onAbrirLeccion(categoria)
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Aprender palabras")
+                            Text("📚 Aprender palabras")
                         }
                     }
                 }
             }
         }
 
+        // Nuevo botón para consultar el progreso
+        Button(
+            onClick = onVerProgreso,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("📊 Ver mi progreso")
+        }
 
+        // Botón para regresar
         OutlinedButton(
             onClick = onVolver,
             modifier = Modifier.fillMaxWidth()
