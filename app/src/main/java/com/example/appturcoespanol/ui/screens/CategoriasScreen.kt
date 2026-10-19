@@ -1,6 +1,8 @@
 
 package com.example.appturcoespanol.ui.screens
 
+import androidx.compose.material3.Button
+import androidx.compose.foundation.layout.height
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -31,7 +33,8 @@ import com.example.appturcoespanol.viewmodel.CategoriasViewModel
 @Composable
 fun CategoriasScreen(
     viewModel: CategoriasViewModel,
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    onAbrirLeccion: (CategoriaAprendizaje) -> Unit
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -111,9 +114,11 @@ fun CategoriasScreen(
             }
         }
 
+
         AnimatedVisibility(
             visible = uiState.categoriaSeleccionada != null
         ) {
+
             uiState.categoriaSeleccionada?.let { categoria ->
 
                 Card(
@@ -135,10 +140,22 @@ fun CategoriasScreen(
                         Text(
                             text = "Categoría: ${categoria.nombre}"
                         )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Button(
+                            onClick = {
+                                onAbrirLeccion(categoria)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Aprender palabras")
+                        }
                     }
                 }
             }
         }
+
 
         OutlinedButton(
             onClick = onVolver,
