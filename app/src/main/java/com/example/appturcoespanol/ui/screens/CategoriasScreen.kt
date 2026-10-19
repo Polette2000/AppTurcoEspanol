@@ -10,10 +10,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -31,7 +33,9 @@ import com.example.appturcoespanol.viewmodel.CategoriasViewModel
 @Composable
 fun CategoriasScreen(
     viewModel: CategoriasViewModel,
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    onAbrirLeccion: (CategoriaAprendizaje) -> Unit,
+    onVerProgreso: () -> Unit
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -61,6 +65,7 @@ fun CategoriasScreen(
             textAlign = TextAlign.Center
         )
 
+        // Tarjetas para elegir una categoria
         CategoriaAprendizaje.entries.forEach { categoria ->
 
             val seleccionada =
@@ -74,10 +79,11 @@ fun CategoriasScreen(
                     },
                 border = BorderStroke(
                     width = if (seleccionada) 3.dp else 1.dp,
-                    color = if (seleccionada)
+                    color = if (seleccionada) {
                         MaterialTheme.colorScheme.primary
-                    else
+                    } else {
                         MaterialTheme.colorScheme.outline
+                    }
                 )
             ) {
 
@@ -111,14 +117,17 @@ fun CategoriasScreen(
             }
         }
 
+        // Mostrar la categoria seleccionada
         AnimatedVisibility(
             visible = uiState.categoriaSeleccionada != null
         ) {
+
             uiState.categoriaSeleccionada?.let { categoria ->
 
                 Card(
                     modifier = Modifier.fillMaxWidth()
                 ) {
+
                     Column(
                         modifier = Modifier.padding(20.dp)
                     ) {
@@ -135,9 +144,28 @@ fun CategoriasScreen(
                         Text(
                             text = "Categoría: ${categoria.nombre}"
                         )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Button(
+                            onClick = {
+                                onAbrirLeccion(categoria)
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("📚 Aprender palabras")
+                        }
                     }
                 }
             }
+        }
+
+        // Nuevo boton para revisar DataStore
+        Button(
+            onClick = onVerProgreso,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("📊 Ver mi progreso")
         }
 
         OutlinedButton(
