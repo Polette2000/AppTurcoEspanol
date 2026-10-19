@@ -1,3 +1,4 @@
+
 package com.example.appturcoespanol.navigation
 
 import androidx.compose.material3.Text
@@ -12,8 +13,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+
 import com.example.appturcoespanol.model.CategoriaAprendizaje
 import com.example.appturcoespanol.repository.ProgresoRepository
+
 import com.example.appturcoespanol.ui.screens.BienvenidaScreen
 import com.example.appturcoespanol.ui.screens.CamaraScreen
 import com.example.appturcoespanol.ui.screens.CategoriasScreen
@@ -21,6 +24,7 @@ import com.example.appturcoespanol.ui.screens.ConfiguracionSesionScreen
 import com.example.appturcoespanol.ui.screens.JuegoScreen
 import com.example.appturcoespanol.ui.screens.ProgresoScreen
 import com.example.appturcoespanol.ui.screens.VocabularioScreen
+
 import com.example.appturcoespanol.viewmodel.CategoriasViewModel
 import com.example.appturcoespanol.viewmodel.ConfiguracionSesionViewModel
 import com.example.appturcoespanol.viewmodel.JuegoViewModel
@@ -33,76 +37,108 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val context = LocalContext.current.applicationContext
 
-    // Un repositorio DataStore compartido por los ViewModels.
+    // Repositorio compartido para guardar el progreso
     val progresoRepository = remember(context) {
         ProgresoRepository(context)
     }
 
+    // Factory para el ViewModel de vocabulario
     val vocabularioFactory = remember(progresoRepository) {
         viewModelFactory {
-            initializer { VocabularioViewModel(progresoRepository) }
+            initializer {
+                VocabularioViewModel(progresoRepository)
+            }
         }
     }
 
+    // Factory para el ViewModel del juego
     val juegoFactory = remember(progresoRepository) {
         viewModelFactory {
-            initializer { JuegoViewModel(progresoRepository) }
+            initializer {
+                JuegoViewModel(progresoRepository)
+            }
         }
     }
 
+    // Factory para el ViewModel del progreso
     val progresoFactory = remember(progresoRepository) {
         viewModelFactory {
-            initializer { ProgresoViewModel(progresoRepository) }
+            initializer {
+                ProgresoViewModel(progresoRepository)
+            }
         }
     }
 
-    // Se comparte la seleccion del avatar entre pantallas.
+    // ViewModel compartido de configuración
     val configuracionViewModel: ConfiguracionSesionViewModel = viewModel()
-    val estadoSesion by configuracionViewModel.uiState.collectAsStateWithLifecycle()
+
+    val estadoSesion by configuracionViewModel.uiState
+        .collectAsStateWithLifecycle()
 
     NavHost(
         navController = navController,
         startDestination = "bienvenida"
     ) {
-        // 1. Pantalla de inicio
+
+        // PANTALLA 1: BIENVENIDA
         composable("bienvenida") {
+
             BienvenidaScreen(
-                onComenzar = { navController.navigate("configuracion") }
+                onComenzar = {
+                    navController.navigate("configuracion")
+                }
             )
         }
 
-        // 2. Elegir avatar
+        // PANTALLA 2: CONFIGURACIÓN
         composable("configuracion") {
+
             ConfiguracionSesionScreen(
                 viewModel = configuracionViewModel,
-                onVolver = { navController.popBackStack() },
-                onVerCategorias = { navController.navigate("categorias") }
+                onVolver = {
+                    navController.popBackStack()
+                },
+                onVerCategorias = {
+                    navController.navigate("categorias")
+                }
             )
         }
 
-        // 3. Elegir categoria y consultar progreso
+        // PANTALLA 3: CATEGORÍAS
         composable("categorias") {
+
             val categoriasViewModel: CategoriasViewModel = viewModel()
 
             CategoriasScreen(
                 viewModel = categoriasViewModel,
-                onVolver = { navController.popBackStack() },
-                onAbrirLeccion = { categoria ->
-                    navController.navigate("vocabulario/${categoria.name}")
+                onVolver = {
+                    navController.popBackStack()
                 },
-                onVerProgreso = { navController.navigate("progreso") }
+                onAbrirLeccion = { categoria ->
+                    navController.navigate(
+                        "vocabulario/${categoria.name}"
+                    )
+                },
+                onVerProgreso = {
+                    navController.navigate("progreso")
+                }
             )
         }
 
-        // 4. Vocabulario, con acceso al juego y a la camara
+        // PANTALLA 4: VOCABULARIO
         composable("vocabulario/{categoria}") { backStackEntry ->
-            val nombreCategoria = backStackEntry.arguments?.getString("categoria")
+
+            val nombreCategoria =
+                backStackEntry.arguments?.getString("categoria")
+
             val categoria = CategoriaAprendizaje.entries.firstOrNull {
                 it.name == nombreCategoria
             }
+
             val avatar = estadoSesion.avatarSeleccionado
 
             if (categoria != null && avatar != null) {
+
                 val vocabularioViewModel: VocabularioViewModel = viewModel(
                     factory = vocabularioFactory
                 )
@@ -111,46 +147,65 @@ fun AppNavigation() {
                     categoria = categoria,
                     avatar = avatar,
                     viewModel = vocabularioViewModel,
-                    onVolver = { navController.popBackStack() },
+                    onVolver = {
+                        navController.popBackStack()
+                    },
                     onAbrirJuego = {
-                        navController.navigate("juego/${categoria.name}")
+                        navController.navigate(
+                            "juego/${categoria.name}"
+                        )
                     },
                     onAbrirCamara = {
-                        navController.navigate("camara/${categoria.name}")
+                        navController.navigate(
+                            "camara/${categoria.name}"
+                        )
                     }
                 )
+
             } else {
                 Text("Selecciona un avatar y una categoría para continuar.")
             }
         }
 
-        // 5. Minijuego con guardado de la puntuacion
+        // PANTALLA 5: JUEGO
         composable("juego/{categoria}") { backStackEntry ->
-            val nombreCategoria = backStackEntry.arguments?.getString("categoria")
+
+            val nombreCategoria =
+                backStackEntry.arguments?.getString("categoria")
+
             val categoria = CategoriaAprendizaje.entries.firstOrNull {
                 it.name == nombreCategoria
             }
+
             val avatar = estadoSesion.avatarSeleccionado
 
             if (categoria != null && avatar != null) {
-                val juegoViewModel: JuegoViewModel = viewModel(factory = juegoFactory)
+
+                val juegoViewModel: JuegoViewModel = viewModel(
+                    factory = juegoFactory
+                )
 
                 JuegoScreen(
                     categoria = categoria,
                     avatar = avatar,
                     viewModel = juegoViewModel,
-                    onVolver = { navController.popBackStack() }
+                    onVolver = {
+                        navController.popBackStack()
+                    }
                 )
+
             } else {
                 Text("Selecciona un avatar y una categoría para continuar.")
             }
         }
 
-        // 6. Progreso y reinicio seguro
+        // PANTALLA 6: PROGRESO
         composable("progreso") {
+
             val avatar = estadoSesion.avatarSeleccionado
 
             if (avatar != null) {
+
                 val progresoViewModel: ProgresoViewModel = viewModel(
                     factory = progresoFactory
                 )
@@ -158,25 +213,35 @@ fun AppNavigation() {
                 ProgresoScreen(
                     avatar = avatar,
                     viewModel = progresoViewModel,
-                    onVolver = { navController.popBackStack() }
+                    onVolver = {
+                        navController.popBackStack()
+                    }
                 )
+
             } else {
                 Text("Selecciona un avatar para ver tu progreso.")
             }
         }
 
-        // 7. NUEVO: Camara del sistema para fotografiar objetos
+        // PANTALLA 7: CÁMARA
         composable("camara/{categoria}") { backStackEntry ->
-            val nombreCategoria = backStackEntry.arguments?.getString("categoria")
+
+            val nombreCategoria =
+                backStackEntry.arguments?.getString("categoria")
+
             val categoria = CategoriaAprendizaje.entries.firstOrNull {
                 it.name == nombreCategoria
             }
 
             if (categoria != null) {
+
                 CamaraScreen(
                     categoria = categoria,
-                    onVolver = { navController.popBackStack() }
+                    onVolver = {
+                        navController.popBackStack()
+                    }
                 )
+
             } else {
                 Text("Categoría no disponible.")
             }

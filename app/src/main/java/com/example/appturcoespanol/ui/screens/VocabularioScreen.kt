@@ -1,3 +1,4 @@
+
 package com.example.appturcoespanol.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 import com.example.appturcoespanol.model.Avatar
 import com.example.appturcoespanol.model.CategoriaAprendizaje
 import com.example.appturcoespanol.tts.TextToSpeechManager
@@ -45,37 +47,39 @@ fun VocabularioScreen(
     onAbrirCamara: () -> Unit
 ) {
 
-
-    // Obtenemos el contexto de Android
+    // Obtener el contexto de Android
     val context = LocalContext.current
 
-    // Creamos el administrador de audio nativo
+    // Administrador para reproducir pronunciaciones
     val ttsManager = remember(context) {
         TextToSpeechManager(context)
     }
 
-    // Estado para mostrar errores de audio
+    // Estado para mostrar errores de pronunciación
     var errorPronunciacion by remember {
         mutableStateOf(false)
     }
 
-    // Liberamos recursos al salir de la pantalla
+    // Liberar recursos de audio al salir
     DisposableEffect(ttsManager) {
         onDispose {
             ttsManager.liberar()
         }
     }
 
-    // Cargamos las palabras de la categoria
+    // Cargar las palabras de la categoría
     LaunchedEffect(categoria) {
         viewModel.cargarCategoria(categoria)
     }
 
-    // Observamos el estado del ViewModel
+    // Observar el estado del ViewModel
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
-    val mensajeGuardado by viewModel.mensajeGuardado.collectAsStateWithLifecycle()
 
-    // Detenemos el audio cuando cambia la palabra
+    // Mensaje del guardado del progreso
+    val mensajeGuardado by viewModel.mensajeGuardado
+        .collectAsStateWithLifecycle()
+
+    // Detener el audio al cambiar de palabra
     LaunchedEffect(
         ttsManager,
         estado.indiceActual,
@@ -95,6 +99,7 @@ fun VocabularioScreen(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
 
+        // Título de la lección
         Text(
             text = "¡Aprendamos! 📚",
             style = MaterialTheme.typography.headlineMedium,
@@ -113,7 +118,7 @@ fun VocabularioScreen(
 
         } else {
 
-            // Calculamos el progreso de la leccion
+            // Calcular el progreso de la lección
             val progreso = if (estado.completada) {
                 1f
             } else {
@@ -128,6 +133,7 @@ fun VocabularioScreen(
 
             if (estado.completada) {
 
+                // Mensaje de lección completada
                 Text(
                     text = "🎉",
                     fontSize = 72.sp
@@ -139,10 +145,16 @@ fun VocabularioScreen(
                 )
 
                 Text(
-                    text = "Harika! Çok iyi!"
+                    text = "Harika! Çok iyi!",
+                    style = MaterialTheme.typography.titleMedium
                 )
 
-                // Resultado del guardado en DataStore
+                Text(
+                    text = "Has recorrido todas las palabras.",
+                    textAlign = TextAlign.Center
+                )
+
+                // Mostrar resultado del guardado en DataStore
                 mensajeGuardado?.let { mensaje ->
                     Text(
                         text = mensaje,
@@ -151,6 +163,7 @@ fun VocabularioScreen(
                     )
                 }
 
+                // Repetir la lección
                 Button(
                     onClick = viewModel::reiniciarLeccion,
                     modifier = Modifier.fillMaxWidth()
@@ -158,7 +171,7 @@ fun VocabularioScreen(
                     Text("Repetir lección")
                 }
 
-                // Abrir minijuego despues de completar la leccion
+                // Abrir el minijuego
                 Button(
                     onClick = onAbrirJuego,
                     modifier = Modifier.fillMaxWidth()
@@ -171,7 +184,8 @@ fun VocabularioScreen(
                 estado.palabraActual?.let { palabra ->
 
                     Text(
-                        text = "Palabra ${estado.indiceActual + 1} de ${estado.palabras.size}"
+                        text = "Palabra ${estado.indiceActual + 1} de ${estado.palabras.size}",
+                        style = MaterialTheme.typography.bodyMedium
                     )
 
                     // Tarjeta de vocabulario
@@ -182,7 +196,7 @@ fun VocabularioScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(24.dp),
+                                .padding(28.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
@@ -202,20 +216,17 @@ fun VocabularioScreen(
                                 style = MaterialTheme.typography.headlineSmall
                             )
 
-                            // Recurso nativo TextToSpeech
+                            // Reproducir la palabra en español
                             Button(
                                 onClick = {
                                     errorPronunciacion =
-                                        !ttsManager.hablar(
-                                            palabra.espanol
-                                        )
+                                        !ttsManager.hablar(palabra.espanol)
                                 },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text("🔊 Escuchar en español")
                             }
 
-                            // Mensaje si el audio falla
                             if (errorPronunciacion) {
                                 Text(
                                     text = "La voz española no está disponible o todavía no está lista. Inténtalo nuevamente.",
@@ -226,7 +237,7 @@ fun VocabularioScreen(
                         }
                     }
 
-                    // Botones de navegacion de palabras
+                    // Navegar entre las palabras
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -262,7 +273,7 @@ fun VocabularioScreen(
             }
         }
 
-        // Actividad opcional con la camara nativa.
+        // Actividad con la cámara
         Button(
             onClick = onAbrirCamara,
             modifier = Modifier.fillMaxWidth()
@@ -270,10 +281,9 @@ fun VocabularioScreen(
             Text("📷 Busca y fotografía")
         }
 
-        Spacer(
-            modifier = Modifier.height(8.dp)
-        )
+        Spacer(modifier = Modifier.height(8.dp))
 
+        // Regresar a categorías
         OutlinedButton(
             onClick = onVolver,
             modifier = Modifier.fillMaxWidth()

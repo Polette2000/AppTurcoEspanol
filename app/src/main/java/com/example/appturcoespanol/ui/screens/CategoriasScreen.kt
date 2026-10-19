@@ -49,6 +49,7 @@ fun CategoriasScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
 
+        // Título principal
         Text(
             text = "¡Vamos a aprender! 🌟",
             style = MaterialTheme.typography.headlineMedium,
@@ -65,7 +66,7 @@ fun CategoriasScreen(
             textAlign = TextAlign.Center
         )
 
-        // Tarjetas para elegir una categoria
+        // Mostrar categorías de aprendizaje
         CategoriaAprendizaje.entries.forEach { categoria ->
 
             val seleccionada =
@@ -117,7 +118,7 @@ fun CategoriasScreen(
             }
         }
 
-        // Mostrar la categoria seleccionada
+        // Mostrar información de la categoría seleccionada
         AnimatedVisibility(
             visible = uiState.categoriaSeleccionada != null
         ) {
@@ -147,6 +148,7 @@ fun CategoriasScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // Botón para abrir vocabulario
                         Button(
                             onClick = {
                                 onAbrirLeccion(categoria)
@@ -160,7 +162,7 @@ fun CategoriasScreen(
             }
         }
 
-        // Nuevo boton para revisar DataStore
+        // Nuevo botón para consultar el progreso
         Button(
             onClick = onVerProgreso,
             modifier = Modifier.fillMaxWidth()
@@ -168,6 +170,7 @@ fun CategoriasScreen(
             Text("📊 Ver mi progreso")
         }
 
+        // Botón para regresar
         OutlinedButton(
             onClick = onVolver,
             modifier = Modifier.fillMaxWidth()

@@ -3,12 +3,16 @@ package com.example.appturcoespanol.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+
 import com.example.appturcoespanol.model.Avatar
 import com.example.appturcoespanol.model.CategoriaAprendizaje
 import com.example.appturcoespanol.model.VocabularioUiState
+
 import com.example.appturcoespanol.repository.ProgresoRepository
 import com.example.appturcoespanol.repository.VocabularioRepository
+
 import java.io.IOException
+
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +23,7 @@ class VocabularioViewModel(
     private val progresoRepository: ProgresoRepository
 ) : ViewModel() {
 
+    // Estado de la pantalla de vocabulario
     private val _uiState = MutableStateFlow(
         VocabularioUiState()
     )
@@ -26,18 +31,19 @@ class VocabularioViewModel(
     val uiState: StateFlow<VocabularioUiState> =
         _uiState.asStateFlow()
 
-    // Mensaje para informar el resultado del guardado
+    // Estado del mensaje de guardado
     private val _mensajeGuardado =
         MutableStateFlow<String?>(null)
 
     val mensajeGuardado: StateFlow<String?> =
         _mensajeGuardado.asStateFlow()
 
-    // Cargar las palabras seleccionadas
+    // Cargar las palabras de la categoría seleccionada
     fun cargarCategoria(
         categoria: CategoriaAprendizaje
     ) {
 
+        // Evitar cargar nuevamente la misma categoría
         if (
             _uiState.value.categoria == categoria &&
             _uiState.value.palabras.isNotEmpty()
@@ -56,11 +62,13 @@ class VocabularioViewModel(
         _mensajeGuardado.value = null
     }
 
-    // Avanzar y guardar si termina la leccion
+    // Avanzar a la siguiente palabra
+    // Guardar progreso cuando finaliza la lección
     fun siguientePalabra(avatar: Avatar) {
 
         val estado = _uiState.value
 
+        // Evitar avanzar si no hay palabras o ya finalizó
         if (
             estado.palabras.isEmpty() ||
             estado.completada
@@ -68,29 +76,33 @@ class VocabularioViewModel(
             return
         }
 
+        // Todavía quedan palabras por aprender
         if (estado.indiceActual < estado.palabras.lastIndex) {
 
-            _uiState.update {
-                it.copy(
-                    indiceActual = it.indiceActual + 1
+            _uiState.update { estadoActual ->
+                estadoActual.copy(
+                    indiceActual = estadoActual.indiceActual + 1
                 )
             }
 
         } else {
 
-            // Se completo la ultima palabra
-            _uiState.update {
-                it.copy(completada = true)
+            // Se completó la última palabra
+            _uiState.update { estadoActual ->
+                estadoActual.copy(
+                    completada = true
+                )
             }
 
             val categoria = estado.categoria ?: return
 
             _mensajeGuardado.value = "Guardando progreso..."
 
-            // Guardar utilizando corrutinas
+            // Guardar el avance utilizando corrutinas
             viewModelScope.launch {
 
                 try {
+
                     progresoRepository.guardarLeccionCompletada(
                         avatar = avatar,
                         categoria = categoria
@@ -109,31 +121,36 @@ class VocabularioViewModel(
         }
     }
 
-    // Retroceder entre palabras
+    // Volver a la palabra anterior
     fun anteriorPalabra() {
 
         _uiState.update { estado ->
 
             if (estado.indiceActual > 0) {
+
                 estado.copy(
                     indiceActual = estado.indiceActual - 1
                 )
+
             } else {
+
                 estado
             }
         }
     }
 
-    // Reiniciar la leccion
+    // Reiniciar la lección desde la primera palabra
     fun reiniciarLeccion() {
 
         _uiState.update { estado ->
+
             estado.copy(
                 indiceActual = 0,
                 completada = false
             )
         }
 
+        // Limpiar el mensaje anterior
         _mensajeGuardado.value = null
     }
 }
