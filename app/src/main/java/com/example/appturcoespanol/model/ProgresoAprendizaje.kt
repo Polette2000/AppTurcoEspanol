@@ -1,4 +1,7 @@
+
 package com.example.appturcoespanol.model
 
-class ProgresoAprendizaje {
-}
+data class ProgresoAprendizaje(
+    val leccionCompletada: Boolean = false,
+    val mejorPuntaje: Int = 0
+)
