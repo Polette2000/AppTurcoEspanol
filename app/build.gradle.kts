@@ -70,4 +70,32 @@ dependencies {
     // Animaciones
     implementation(libs.androidx.compose.animation)
 
+
+        // Kotest
+        testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
+        testImplementation("io.kotest:kotest-assertions-core:5.8.0")
+
+        // JUnit 5
+        testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+
+        // MockK
+        testImplementation("io.mockk:mockk:1.13.10")
+
+        // Compose UI Test
+        androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.2")
+        debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.2")
+
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+
+// Obligatorio para usar JUnit 5
+    tasks.withType<Test>().configureEach {
+        useJUnitPlatform()}
+
 }
