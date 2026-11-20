@@ -18,15 +18,20 @@ private val Context.progresoDataStore by preferencesDataStore(
 )
 
 class ProgresoRepository(
-    private val context: Context
+    private val context: Context,
+    private val perfilId: String? = null
 ) {
+
+    // Si el perfil es nulo se conservan las claves anteriores (compatibilidad).
+    // Un perfil nuevo usa su UUID en todas las claves de progreso.
+    private fun clavePerfil(): String = perfilId?.let { "perfil_${it}_" } ?: ""
 
     // Clave de leccion completada
     private fun claveLeccion(
         avatar: Avatar,
         categoria: CategoriaAprendizaje
     ) = booleanPreferencesKey(
-        "leccion_${avatar.name}_${categoria.name}"
+        "leccion_${clavePerfil()}${avatar.name}_${categoria.name}"
     )
 
     // Clave de la mejor puntuacion
@@ -34,7 +39,7 @@ class ProgresoRepository(
         avatar: Avatar,
         categoria: CategoriaAprendizaje
     ) = intPreferencesKey(
-        "puntaje_${avatar.name}_${categoria.name}"
+        "puntaje_${clavePerfil()}${avatar.name}_${categoria.name}"
     )
 
     // Recuperar el progreso almacenado
