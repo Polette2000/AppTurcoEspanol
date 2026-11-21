@@ -1,70 +1,60 @@
-
 package com.example.appturcoespanol.tts
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
+import com.example.appturcoespanol.model.Idioma
 import java.util.Locale
 
-class TextToSpeechManager(
-    context: Context
-) : TextToSpeech.OnInitListener {
+class TextToSpeechManager(context: Context) : TextToSpeech.OnInitListener {
 
-    private var textToSpeech: TextToSpeech? = null
-
+    private var motor: TextToSpeech? = null
     private var inicializado = false
 
-    private var idiomaDisponible = false
-
     init {
-        textToSpeech = TextToSpeech(
-            context.applicationContext,
-            this
-        )
+        motor = TextToSpeech(context.applicationContext, this)
     }
 
     override fun onInit(status: Int) {
-
-        if (status == TextToSpeech.SUCCESS) {
-
-            val resultado = textToSpeech?.setLanguage(
-                Locale.forLanguageTag("es-ES")
-            )
-
-            inicializado = true
-
-            idiomaDisponible =
-                resultado != null &&
-                        resultado != TextToSpeech.LANG_MISSING_DATA &&
-                        resultado != TextToSpeech.LANG_NOT_SUPPORTED
-        }
+        inicializado = status == TextToSpeech.SUCCESS
     }
 
-    fun hablar(texto: String): Boolean {
+    // Compatibilidad con el código anterior.
+    fun hablar(texto: String): Boolean = hablar(texto, Idioma.ESPANOL)
 
-        if (!inicializado || !idiomaDisponible) {
+    // Nueva reproducción en español o turco.
+    fun hablar(texto: String, idioma: Idioma): Boolean {
+        if (!inicializado || texto.isBlank()) return false
+        val tts = motor ?: return false
+
+        val locale = if (idioma == Idioma.TURCO) {
+            Locale.forLanguageTag("tr-TR")
+        } else {
+            Locale.forLanguageTag("es-ES")
+        }
+
+        val disponibilidad = tts.setLanguage(locale)
+        if (disponibilidad == TextToSpeech.LANG_MISSING_DATA ||
+            disponibilidad == TextToSpeech.LANG_NOT_SUPPORTED
+        ) {
             return false
         }
 
-        val resultado = textToSpeech?.speak(
+        return tts.speak(
             texto,
             TextToSpeech.QUEUE_FLUSH,
             null,
-            "palabra_${System.nanoTime()}"
-        )
-
-        return resultado == TextToSpeech.SUCCESS
+            "esturk_${System.nanoTime()}"
+        ) == TextToSpeech.SUCCESS
     }
 
     fun detener() {
-        textToSpeech?.stop()
+        motor?.stop()
     }
 
     fun liberar() {
-        textToSpeech?.stop()
-        textToSpeech?.shutdown()
-
-        textToSpeech = null
+        motor?.stop()
+        motor?.shutdown()
+        motor = null
         inicializado = false
-        idiomaDisponible = false
     }
 }

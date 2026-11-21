@@ -1,15 +1,15 @@
-
 package com.example.appturcoespanol.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.appturcoespanol.model.Avatar
 import com.example.appturcoespanol.model.CategoriaAprendizaje
+import com.example.appturcoespanol.model.Idioma
 import com.example.appturcoespanol.model.JuegoUiState
 import com.example.appturcoespanol.model.PreguntaJuego
 import com.example.appturcoespanol.repository.ProgresoRepository
 import com.example.appturcoespanol.repository.VocabularioRepository
-import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,159 +20,136 @@ class JuegoViewModel(
     private val progresoRepository: ProgresoRepository
 ) : ViewModel() {
 
-    // Estado privado del minijuego
-    private val _uiState = MutableStateFlow(
-        JuegoUiState()
-    )
+    private val _uiState = MutableStateFlow(JuegoUiState())
+    val uiState: StateFlow<JuegoUiState> = _uiState.asStateFlow()
 
-    // Estado publico para la interfaz
-    val uiState: StateFlow<JuegoUiState> =
-        _uiState.asStateFlow()
+    private val _mensajeGuardado = MutableStateFlow<String?>(null)
+    val mensajeGuardado: StateFlow<String?> = _mensajeGuardado.asStateFlow()
 
-    // Estado del guardado en DataStore
-    private val _mensajeGuardado =
-        MutableStateFlow<String?>(null)
-
-    val mensajeGuardado: StateFlow<String?> =
-        _mensajeGuardado.asStateFlow()
-
-    // Preparar las preguntas de una categoria
     fun cargarCategoria(
-        categoria: CategoriaAprendizaje
+        categoria: CategoriaAprendizaje,
+        idiomaNativo: Idioma,
+        avatar: Avatar
     ) {
+        val anterior = _uiState.value
+        if (anterior.categoria == categoria &&
+            anterior.idiomaNativo == idiomaNativo &&
+            anterior.avatar == avatar &&
+            anterior.preguntas.isNotEmpty()
+        ) return
 
-        if (
-            _uiState.value.categoria == categoria &&
-            _uiState.value.preguntas.isNotEmpty()
-        ) {
-            return
-        }
+        val palabras = VocabularioRepository.obtenerPalabras(categoria)
+        val aprendeTurco = idiomaNativo == Idioma.ESPANOL
 
-        val palabras =
-            VocabularioRepository.obtenerPalabras(categoria)
+        fun palabraObjetivo(espanol: String, turco: String): String =
+            if (aprendeTurco) turco else espanol
 
-        val opcionesDisponibles =
-            palabras.map { it.espanol }.distinct()
+        fun palabraNativa(espanol: String, turco: String): String =
+            if (aprendeTurco) espanol else turco
 
-        val preguntas = palabras.map { palabra ->
+        // Opciones distintas para cada modalidad del avatar.
+        val todasLasOpciones = palabras.map { palabra ->
+            when (avatar) {
+                Avatar.ZORRO -> palabra.emoji // Asociacion visual
+                Avatar.PANDA -> palabraObjetivo(palabra.espanol, palabra.turco)
+                Avatar.GATO -> palabraNativa(palabra.espanol, palabra.turco)
+            }
+        }.distinct()
+
+        val preguntas = palabras.shuffled().map { palabra ->
+            val enIdiomaNuevo = palabraObjetivo(palabra.espanol, palabra.turco)
+            val enIdiomaNativo = palabraNativa(palabra.espanol, palabra.turco)
 
             PreguntaJuego(
-                palabraTurca = palabra.turco,
-                respuestaCorrecta = palabra.espanol,
-                opciones = opcionesDisponibles.shuffled(),
+                pista = when (avatar) {
+                    Avatar.ZORRO -> enIdiomaNuevo // Encuentra la imagen
+                    Avatar.PANDA -> enIdiomaNativo // Traduce
+                    Avatar.GATO -> enIdiomaNuevo  // Escucha esta palabra
+                },
+                respuestaCorrecta = when (avatar) {
+                    Avatar.ZORRO -> palabra.emoji
+                    Avatar.PANDA -> enIdiomaNuevo
+                    Avatar.GATO -> enIdiomaNativo
+                },
+                opciones = todasLasOpciones.shuffled(),
                 emoji = palabra.emoji
             )
         }
 
         _uiState.value = JuegoUiState(
             categoria = categoria,
+            idiomaNativo = idiomaNativo,
+            avatar = avatar,
             preguntas = preguntas
         )
-
         _mensajeGuardado.value = null
     }
 
-    // Verificar la respuesta elegida
     fun responder(opcion: String) {
-
         _uiState.update { estado ->
-
             val pregunta = estado.preguntaActual
-
-            if (
-                pregunta == null ||
+            if (pregunta == null || estado.finalizado ||
                 estado.respuestaSeleccionada != null ||
-                estado.finalizado ||
                 opcion !in pregunta.opciones
             ) {
                 estado
             } else {
-
-                val correcta =
-                    opcion == pregunta.respuestaCorrecta
-
                 estado.copy(
                     respuestaSeleccionada = opcion,
                     aciertos = estado.aciertos +
-                            if (correcta) 1 else 0
+                            if (opcion == pregunta.respuestaCorrecta) 1 else 0
                 )
             }
         }
     }
 
-    // Avanzar y guardar cuando termina el juego
     fun siguientePregunta(avatar: Avatar) {
-
         val estado = _uiState.value
+        if (estado.respuestaSeleccionada == null || estado.finalizado ||
+            estado.avatar != avatar
+        ) return
 
-        // No avanzar sin responder
-        if (
-            estado.respuestaSeleccionada == null ||
-            estado.finalizado
-        ) {
-            return
-        }
-
-        if (
-            estado.indicePregunta <
-            estado.preguntas.lastIndex
-        ) {
-
+        if (estado.indicePregunta < estado.preguntas.lastIndex) {
             _uiState.update {
                 it.copy(
                     indicePregunta = it.indicePregunta + 1,
                     respuestaSeleccionada = null
                 )
             }
-
         } else {
-
             val categoria = estado.categoria ?: return
+            _uiState.value = estado.copy(finalizado = true)
+            _mensajeGuardado.value = "Guardando puntuación..."
 
-            // Marcar el juego como finalizado
-            _uiState.value = estado.copy(
-                finalizado = true
-            )
-
-            _mensajeGuardado.value =
-                "Guardando puntuación..."
-
-            // Guardar en DataStore
             viewModelScope.launch {
-
                 try {
-
                     progresoRepository.guardarMejorPuntaje(
                         avatar = avatar,
                         categoria = categoria,
                         puntaje = estado.aciertos
                     )
-
-                    _mensajeGuardado.value =
-                        "✅ Resultado guardado. " +
-                                "Se conserva tu mejor puntuación."
-
-                } catch (e: IOException) {
-
-                    _mensajeGuardado.value =
-                        "⚠️ No se pudo guardar la puntuación."
+                    _mensajeGuardado.value = "✅ Mejor puntuación guardada."
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    _mensajeGuardado.value = "⚠️ No se pudo guardar la puntuación."
                 }
             }
         }
     }
 
-    // Reiniciar el minijuego
     fun reiniciarJuego() {
-
         _uiState.update { estado ->
             estado.copy(
+                preguntas = estado.preguntas.shuffled().map { pregunta ->
+                    pregunta.copy(opciones = pregunta.opciones.shuffled())
+                },
                 indicePregunta = 0,
                 respuestaSeleccionada = null,
                 aciertos = 0,
                 finalizado = false
             )
         }
-
         _mensajeGuardado.value = null
     }
 }

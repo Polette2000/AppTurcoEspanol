@@ -1,8 +1,8 @@
-
 package com.example.appturcoespanol.model
 
+// Una pregunta puede representar una imagen, una traduccion o un sonido.
 data class PreguntaJuego(
-    val palabraTurca: String,
+    val pista: String,
     val respuestaCorrecta: String,
     val opciones: List<String>,
     val emoji: String
@@ -10,6 +10,8 @@ data class PreguntaJuego(
 
 data class JuegoUiState(
     val categoria: CategoriaAprendizaje? = null,
+    val idiomaNativo: Idioma? = null,
+    val avatar: Avatar? = null,
     val preguntas: List<PreguntaJuego> = emptyList(),
     val indicePregunta: Int = 0,
     val respuestaSeleccionada: String? = null,
@@ -21,6 +23,5 @@ data class JuegoUiState(
 
     val esCorrecta: Boolean
         get() = respuestaSeleccionada != null &&
-                respuestaSeleccionada ==
-                preguntaActual?.respuestaCorrecta
+                respuestaSeleccionada == preguntaActual?.respuestaCorrecta
 }

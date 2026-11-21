@@ -92,11 +92,11 @@ app/src/main/java/com/example/appturcoespanol/
 
 ## Equipo de desarrollo
 
-- **Integrante 1:** [Nombre y apellido de Darling].
-- **Integrante 2:** [Nombre y apellido del otro integrante].
-- **Sección / equipo:** [Completar].
-- **Docente:** [Completar si corresponde].
-- **Tablero Trello:** [Agregar enlace del tablero].
+- **Integrante 1:Patience Agunanna.
+- **Integrante 2:Ruth Honorio.
+- **Integrante 2:Darling Pinol.
+- **Docente:Luis Becerra.
+- **Tablero Trello:https://trello.com/b/XyAIiJD7/applicaci%C3%B3n.
 
 El trabajo se organiza mediante ramas y commits en GitHub. Cada integrante debe registrar sus aportes y evidencias de colaboración.
 
