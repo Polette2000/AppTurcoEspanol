@@ -19,6 +19,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import com.example.appturcoespanol.repository.TraduccionRepository
+import kotlinx.coroutines.CancellationException
+
+
+
 class VocabularioViewModel(
     private val progresoRepository: ProgresoRepository
 ) : ViewModel() {
@@ -37,6 +42,36 @@ class VocabularioViewModel(
 
     val mensajeGuardado: StateFlow<String?> =
         _mensajeGuardado.asStateFlow()
+
+    private val traduccionRepository = TraduccionRepository()
+
+    private val _traduccionApi = MutableStateFlow("")
+    val traduccionApi: StateFlow<String> =
+        _traduccionApi.asStateFlow()
+
+    fun consultarTraduccionOnline(palabra: String) {
+        _traduccionApi.value = "Consultando API..."
+
+        viewModelScope.launch {
+            try {
+                val resultado =
+                    traduccionRepository.consultar(palabra)
+
+                _traduccionApi.value = resultado
+
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _traduccionApi.value =
+                    "No se pudo conectar con la API"
+            }
+        }
+    }
+
+    fun limpiarTraduccion() {
+        _traduccionApi.value = ""
+    }
+
 
     // Cargar las palabras de la categoría seleccionada
     fun cargarCategoria(
