@@ -2,7 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permite consultar servicios de voz nativos -->
+    <!-- Camera externa mediante TakePicturePreview: no declarar permiso CAMERA. -->
+    <!-- La camara NO es un requisito para instalar EsTurk. -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <!-- Mantener las consultas necesarias para TextToSpeech. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />

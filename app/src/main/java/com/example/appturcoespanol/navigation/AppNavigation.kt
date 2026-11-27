@@ -1,5 +1,12 @@
 package com.example.appturcoespanol.navigation
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -9,6 +16,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -74,6 +84,11 @@ fun AppNavigation() {
         if (cuentaActiva.isBlank()) flowOf(null)
         else idiomasRepository.observarIdiomaNativo(cuentaActiva)
     }.collectAsStateWithLifecycle(initialValue = null)
+
+    // Al iniciar sesion, DataStore puede tardar un momento en emitir el idioma.
+    // La bienvenida ya exigio elegir un idioma, por lo que se puede usar
+    // temporalmente esa misma seleccion, sin mostrar una pantalla vacia.
+    val idiomaParaPantallas = idiomaNativo ?: idiomaInicial
 
     // Progreso por cuenta y avatar, sin mezclar familias en el mismo dispositivo.
     val identificadorCuenta = remember(cuentaActiva) {
@@ -228,16 +243,29 @@ fun AppNavigation() {
                         val seleccionado = avatarViewModel.uiState.value.avatarSeleccionado
                         if (seleccionado != null) {
                             avatarActivo = seleccionado
-                            navController.navigate("categorias") { launchSingleTop = true }
+                            // La ruta tambien lleva el avatar por si Android recrea la pantalla.
+                            navController.navigate("categorias/${seleccionado.name}") {
+                                launchSingleTop = true
+                            }
                         }
                     }
                 )
             }
         }
 
-        composable("categorias") {
-            val avatar = avatarActivo
-            val idioma = idiomaNativo
+        composable("categorias/{avatar}") { entrada ->
+            // Recuperar el avatar desde la ruta evita perder la seleccion
+            // al abrir la pantalla en otro dispositivo o tras una recreacion.
+            val avatarDesdeRuta = Avatar.entries.firstOrNull {
+                it.name == entrada.arguments?.getString("avatar")
+            }
+            val avatar = avatarDesdeRuta ?: avatarActivo
+            val idioma = idiomaParaPantallas
+            LaunchedEffect(avatarDesdeRuta) {
+                if (avatarDesdeRuta != null && avatarActivo != avatarDesdeRuta) {
+                    avatarActivo = avatarDesdeRuta
+                }
+            }
             if (avatar != null && idioma != null) {
                 val categoriasViewModel: CategoriasViewModel = viewModel(
                     key = "categorias_${cuentaActiva}_${avatar.name}"
@@ -258,7 +286,25 @@ fun AppNavigation() {
                     onVerProgreso = { navController.navigate("progreso") }
                 )
             } else {
-                Text("Elige un idioma y un avatar para continuar.")
+                // En vez de una pantalla blanca, permitir recuperar el flujo.
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(24.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        if (avatar == null) "Selecciona un avatar para continuar."
+                        else "Selecciona el idioma para continuar."
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(onClick = {
+                        navController.navigate(if (avatar == null) "avatares" else "idiomas") {
+                            launchSingleTop = true
+                        }
+                    }) {
+                        Text(if (avatar == null) "Elegir avatar" else "Elegir idioma")
+                    }
+                }
             }
         }
 
@@ -267,7 +313,7 @@ fun AppNavigation() {
                 it.name == entrada.arguments?.getString("categoria")
             }
             val avatar = avatarActivo
-            val idioma = idiomaNativo
+            val idioma = idiomaParaPantallas
             if (categoria != null && avatar != null && idioma != null && categoria.avatar == avatar) {
                 val vocabViewModel: VocabularioViewModel = viewModel(
                     key = "vocab_${cuentaActiva}_${avatar.name}_${categoria.name}",
@@ -290,7 +336,7 @@ fun AppNavigation() {
                 it.name == entrada.arguments?.getString("categoria")
             }
             val avatar = avatarActivo
-            val idioma = idiomaNativo
+            val idioma = idiomaParaPantallas
             if (categoria != null && avatar != null && idioma != null && categoria.avatar == avatar) {
                 val juegoViewModel: JuegoViewModel = viewModel(
                     key = "juego_${cuentaActiva}_${avatar.name}_${categoria.name}",
@@ -308,7 +354,7 @@ fun AppNavigation() {
 
         composable("progreso") {
             val avatar = avatarActivo
-            val idioma = idiomaNativo
+            val idioma = idiomaParaPantallas
             if (avatar != null && idioma != null) {
                 val progresoViewModel: ProgresoViewModel = viewModel(
                     key = "progreso_${cuentaActiva}_${avatar.name}",

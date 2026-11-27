@@ -5,256 +5,245 @@ import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.appturcoespanol.model.CategoriaAprendizaje
-import com.example.appturcoespanol.repository.VocabularioRepository
-import com.example.appturcoespanol.tts.TextToSpeechManager
+import com.example.appturcoespanol.model.Idioma
 
+/**
+ * Mundo Explorador de Zorro.
+ * Usa la cámara externa mediante ACTION_IMAGE_CAPTURE/TakePicturePreview.
+ * No necesita ni solicita permiso CAMERA de nuestra aplicación.
+ * La miniatura solo se mantiene en memoria: no se guarda ni se envía.
+ */
 @Composable
 fun CamaraScreen(
     categoria: CategoriaAprendizaje,
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    idiomaNativo: Idioma = Idioma.ESPANOL
 ) {
-    val context = LocalContext.current.applicationContext
+    val espanol = idiomaNativo == Idioma.ESPANOL
+    val crema = Color(0xFFFFF5E5)
+    val turquesa = Color(0xFF197E89)
+    val oscuro = Color(0xFF243A53)
 
-    // Las palabras ya existen en nuestro repositorio de vocabulario.
-    val palabras = remember(categoria) {
-        VocabularioRepository.obtenerPalabras(categoria)
-    }
+    var mostrarAviso by rememberSaveable { mutableStateOf(false) }
+    var mensajeError by remember { mutableStateOf<String?>(null) }
+    var foto by remember { mutableStateOf<Bitmap?>(null) }
 
-    var indicePalabra by remember(categoria) {
-        mutableIntStateOf(0)
-    }
-
-    // Solo mantenemos una miniatura en memoria: no creamos archivos.
-    var fotoCapturada by remember(categoria) {
-        mutableStateOf<Bitmap?>(null)
-    }
-
-    var mensajeCamara by remember(categoria) {
-        mutableStateOf<String?>(null)
-    }
-
-    var errorPronunciacion by remember(categoria) {
-        mutableStateOf(false)
-    }
-
-    val ttsManager = remember(context) {
-        TextToSpeechManager(context)
-    }
-
-    DisposableEffect(ttsManager) {
-        onDispose {
-            ttsManager.liberar()
-        }
-    }
-
-    // ActivityResult abre la aplicacion de camara del sistema.
-    // TakePicturePreview devuelve una miniatura Bitmap, sin archivo permanente.
-    val camaraLauncher = rememberLauncherForActivityResult(
+    // El sistema se encarga de abrir la aplicación de cámara del teléfono.
+    // Si la persona cancela, el resultado es null.
+    val lanzarCamara = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicturePreview()
-    ) { bitmap ->
-        if (bitmap != null) {
-            fotoCapturada = bitmap
-            mensajeCamara = "Foto recibida. Puedes compararla con la palabra."
-        } else {
-            mensajeCamara = "No se tomó ninguna fotografía."
-        }
+    ) { imagen: Bitmap? ->
+        foto = imagen
+        mensajeError = if (imagen == null) {
+            if (espanol) "No se tomó ninguna fotografía. Puedes intentarlo otra vez."
+            else "Fotoğraf çekilmedi. Yeniden deneyebilirsin."
+        } else null
     }
 
-    // Cambiar de palabra elimina la miniatura anterior de esta pantalla.
-    LaunchedEffect(indicePalabra) {
-        fotoCapturada = null
-        mensajeCamara = null
-        errorPronunciacion = false
-        ttsManager.detener()
+    val mision = when (categoria) {
+        CategoriaAprendizaje.ANIMALES -> if (espanol)
+            "Busca un animal de juguete o un dibujo de un animal y fotografíalo."
+        else "Oyuncak bir hayvan veya hayvan resmi bul ve fotoğrafını çek."
+
+        CategoriaAprendizaje.FRUTAS -> if (espanol)
+            "Busca una fruta o una imagen de fruta y fotografíala."
+        else "Bir meyve veya meyve resmi bul ve fotoğrafını çek."
+
+        CategoriaAprendizaje.NATURALEZA -> if (espanol)
+            "Busca una hoja, una flor u otro objeto de la naturaleza y fotografíalo."
+        else "Bir yaprak, çiçek veya doğadan bir nesne bul ve fotoğrafını çek."
+
+        else -> if (espanol)
+            "Busca y fotografía un objeto relacionado con esta categoría."
+        else "Bu kategoriyle ilgili bir nesne bul ve fotoğrafını çek."
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(crema)
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Text("🦊 📷", fontSize = 46.sp)
         Text(
-            text = "📷 Busca y fotografía",
-            style = MaterialTheme.typography.headlineMedium,
+            text = if (espanol) "¡Misión exploradora!" else "Keşif görevi!",
+            color = oscuro,
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
-
         Text(
-            text = "Categoría: ${categoria.nombre}",
-            style = MaterialTheme.typography.titleMedium
+            text = if (espanol) categoria.nombre else categoria.nombreTurco,
+            color = turquesa,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold
         )
 
-        Text(
-            text = "Busca un objeto, juguete o dibujo que represente la palabra. " +
-                    "Fotografía solo objetos, nunca personas.",
-            textAlign = TextAlign.Center
-        )
-
-        if (palabras.isEmpty()) {
-            Text("No hay palabras disponibles en esta categoría.")
-        } else {
-            val palabra = palabras[indicePalabra]
-
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(text = palabra.emoji, fontSize = 64.sp)
-                    Text(
-                        text = palabra.espanol,
-                        style = MaterialTheme.typography.headlineMedium
-                    )
-                    Text(
-                        text = palabra.turco,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    Text(
-                        text = "Palabra ${indicePalabra + 1} de ${palabras.size}",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-            }
-
-            Button(
-                onClick = {
-                    errorPronunciacion = !ttsManager.hablar(palabra.espanol)
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("🔊 Escuchar en español")
-            }
-
-            if (errorPronunciacion) {
-                Text(
-                    text = "La voz aún no está lista o no está disponible.",
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-
-            Button(
-                onClick = {
-                    mensajeCamara = null
-                    try {
-                        camaraLauncher.launch(null)
-                    } catch (e: ActivityNotFoundException) {
-                        mensajeCamara = "No hay una aplicación de cámara disponible."
-                    } catch (e: SecurityException) {
-                        mensajeCamara = "Android no permitió abrir la cámara."
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("📷 Tomar fotografía de un objeto")
-            }
-
-            mensajeCamara?.let { mensaje ->
-                Text(
-                    text = mensaje,
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            fotoCapturada?.let { bitmap ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text("Vista previa temporal")
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = "Vista previa del objeto fotografiado",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(240.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                        OutlinedButton(
-                            onClick = {
-                                fotoCapturada = null
-                                mensajeCamara = "Vista previa eliminada."
-                            }
-                        ) {
-                            Text("Eliminar fotografía")
-                        }
-                    }
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = { indicePalabra -= 1 },
-                    enabled = indicePalabra > 0,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Anterior")
-                }
-
-                Button(
-                    onClick = { indicePalabra += 1 },
-                    enabled = indicePalabra < palabras.lastIndex,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Siguiente")
-                }
-            }
-        }
-
-        Text(
-            text = "La aplicación no identifica el objeto ni guarda la foto en DataStore.",
-            style = MaterialTheme.typography.bodySmall,
-            textAlign = TextAlign.Center
-        )
-
-        OutlinedButton(
-            onClick = onVolver,
-            modifier = Modifier.fillMaxWidth()
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
-            Text("Volver al vocabulario")
+            Text(
+                text = mision,
+                modifier = Modifier.padding(20.dp),
+                color = oscuro,
+                fontSize = 17.sp,
+                textAlign = TextAlign.Center
+            )
         }
+
+        Text(
+            text = if (espanol)
+                "Con ayuda de un adulto, fotografía solo objetos o dibujos; nunca personas. La foto se muestra temporalmente y EsTurk no la almacena ni la envía."
+            else "Bir yetişkinin yardımıyla yalnızca nesnelerin veya çizimlerin fotoğrafını çek; insanların değil. EsTurk fotoğrafı saklamaz veya göndermez.",
+            color = oscuro,
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center
+        )
+
+        Button(
+            onClick = { mostrarAviso = true },
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = turquesa)
+        ) {
+            Text(if (espanol) "📷 Fotografiar objeto" else "📷 Nesnenin fotoğrafını çek")
+        }
+
+        mensajeError?.let { error ->
+            Text(
+                text = error,
+                color = Color(0xFFB33939),
+                textAlign = TextAlign.Center
+            )
+        }
+
+        foto?.let { imagen ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        if (espanol) "Fotografía tomada" else "Fotoğraf çekildi",
+                        color = turquesa,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Image(
+                        bitmap = imagen.asImageBitmap(),
+                        contentDescription = if (espanol) "Vista previa de la fotografía" else "Fotoğraf önizlemesi",
+                        modifier = Modifier.fillMaxWidth().height(230.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                    Text(
+                        if (espanol) "¿El objeto coincide con la misión? ¡Muy bien!"
+                        else "Nesne görevle eşleşiyor mu? Aferin!",
+                        color = oscuro,
+                        textAlign = TextAlign.Center
+                    )
+                    OutlinedButton(onClick = { foto = null; mensajeError = null }) {
+                        Text(if (espanol) "Eliminar foto" else "Fotoğrafı sil")
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(6.dp))
+        OutlinedButton(onClick = onVolver, modifier = Modifier.fillMaxWidth()) {
+            Text(if (espanol) "Volver al vocabulario" else "Kelimelere dön")
+        }
+    }
+
+    // Aviso educativo propio de EsTurk (no es un permiso de Android).
+    if (mostrarAviso) {
+        AlertDialog(
+            onDismissRequest = { mostrarAviso = false },
+            title = {
+                Text(if (espanol) "¿Abrir la cámara?" else "Kamera açılsın mı?")
+            },
+            text = {
+                Text(
+                    if (espanol)
+                        "Se abrirá la aplicación de cámara de tu celular. Con ayuda de un adulto, fotografía solamente objetos o dibujos. Puedes cancelar en cualquier momento."
+                    else "Telefonunun kamera uygulaması açılacak. Bir yetişkinin yardımıyla yalnızca nesnelerin veya çizimlerin fotoğrafını çek. İstediğin zaman iptal edebilirsin."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    mostrarAviso = false
+                    mensajeError = null
+                    try {
+                        lanzarCamara.launch(null)
+                    } catch (_: ActivityNotFoundException) {
+                        mensajeError = if (espanol)
+                            "Este celular no tiene una aplicación de cámara disponible."
+                        else "Bu telefonda kullanılabilir bir kamera uygulaması yok."
+                    } catch (_: SecurityException) {
+                        mensajeError = if (espanol)
+                            "Android bloqueó la cámara. Comprueba que el permiso CAMERA no siga declarado en el manifiesto combinado y vuelve a ejecutar la app."
+                        else "Android kamerayı engelledi. Birleştirilmiş manifest dosyasında CAMERA izninin bulunmadığını kontrol edip uygulamayı yeniden çalıştır."
+                    } catch (_: Exception) {
+                        mensajeError = if (espanol)
+                            "No se pudo abrir la cámara. Comprueba que la cámara normal del celular funcione."
+                        else "Kamera açılamadı. Telefonun normal kamera uygulamasının çalıştığından emin ol."
+                    }
+                }) {
+                    Text(if (espanol) "Abrir cámara" else "Kamerayı aç")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mostrarAviso = false }) {
+                    Text(if (espanol) "Cancelar" else "İptal")
+                }
+            }
+        )
     }
 }
