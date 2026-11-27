@@ -1,3 +1,4 @@
+
 package com.example.appturcoespanol.ui.screens
 
 import androidx.compose.foundation.background
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 import com.example.appturcoespanol.model.Avatar
 import com.example.appturcoespanol.model.CategoriaAprendizaje
 import com.example.appturcoespanol.model.Idioma
@@ -51,26 +53,69 @@ fun VocabularioScreen(
     onAbrirJuego: () -> Unit,
     onAbrirCamara: () -> Unit
 ) {
+
     val contexto = LocalContext.current
-    val ttsManager = remember(contexto) { TextToSpeechManager(contexto) }
+
+    val ttsManager = remember(contexto) {
+        TextToSpeechManager(contexto)
+    }
+
+    // Estados del ViewModel
     val estado by viewModel.uiState.collectAsStateWithLifecycle()
-    val mensajeGuardado by viewModel.mensajeGuardado.collectAsStateWithLifecycle()
-    var errorPronunciacion by remember { mutableStateOf(false) }
 
-    // El aprendizaje siempre es del idioma contrario al idioma nativo.
+    val mensajeGuardado by viewModel.mensajeGuardado
+        .collectAsStateWithLifecycle()
+
+    // Estado de la API REST
+    val traduccionApi by viewModel.traduccionApi
+        .collectAsStateWithLifecycle()
+
+    var errorPronunciacion by remember {
+        mutableStateOf(false)
+    }
+
+    // Configuración de idiomas
     val aprendeTurco = idiomaNativo == Idioma.ESPANOL
-    val idiomaObjetivo = if (aprendeTurco) Idioma.TURCO else Idioma.ESPANOL
-    val tituloCategoria = if (aprendeTurco) categoria.nombreTurco else categoria.nombre
 
+    val idiomaObjetivo = if (aprendeTurco) {
+        Idioma.TURCO
+    } else {
+        Idioma.ESPANOL
+    }
+
+    val tituloCategoria = if (aprendeTurco) {
+        categoria.nombreTurco
+    } else {
+        categoria.nombre
+    }
+
+    // Colores de la aplicación
     val crema = Color(0xFFFFF5E5)
     val turquesa = Color(0xFF197E89)
     val oscuro = Color(0xFF243A53)
 
-    LaunchedEffect(categoria) { viewModel.cargarCategoria(categoria) }
-    DisposableEffect(ttsManager) { onDispose { ttsManager.liberar() } }
-    LaunchedEffect(estado.indiceActual, estado.completada, idiomaObjetivo) {
+    // Cargar categoría
+    LaunchedEffect(categoria) {
+        viewModel.cargarCategoria(categoria)
+    }
+
+    // Liberar recursos de voz
+    DisposableEffect(ttsManager) {
+        onDispose {
+            ttsManager.liberar()
+        }
+    }
+
+    // Limpiar estados al cambiar de palabra
+    LaunchedEffect(
+        estado.indiceActual,
+        estado.completada,
+        idiomaObjetivo,
+        categoria
+    ) {
         ttsManager.detener()
         errorPronunciacion = false
+        viewModel.limpiarTraduccion()
     }
 
     Column(
@@ -79,18 +124,31 @@ fun VocabularioScreen(
             .background(crema)
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
+
         horizontalAlignment = Alignment.CenterHorizontally,
+
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
+
+        // Título principal
         Text(
-            text = if (aprendeTurco) "¡Aprendamos! 📚" else "Hadi öğrenelim! 📚",
+            text = if (aprendeTurco) {
+                "¡Aprendamos! 📚"
+            } else {
+                "Hadi öğrenelim! 📚"
+            },
             fontSize = 27.sp,
             fontWeight = FontWeight.Bold,
             color = oscuro,
             textAlign = TextAlign.Center
         )
+
+        // Categoría seleccionada
         Text(
-            text = "$tituloCategoria  •  ${if (aprendeTurco) "🇹🇷 Türkçe" else "🇪🇸 Español"}",
+            text = "$tituloCategoria • ${
+                if (aprendeTurco) "🇹🇷 Türkçe"
+                else "🇪🇸 Español"
+            }",
             fontSize = 19.sp,
             fontWeight = FontWeight.SemiBold,
             color = turquesa,
@@ -98,52 +156,119 @@ fun VocabularioScreen(
         )
 
         if (estado.palabras.isEmpty()) {
-            Text(if (aprendeTurco) "Preparando palabras..." else "Kelimeler hazırlanıyor...")
+
+            Text(
+                if (aprendeTurco) {
+                    "Preparando palabras..."
+                } else {
+                    "Kelimeler hazırlanıyor..."
+                }
+            )
+
         } else {
+
+            // Progreso de la lección
             val progreso = if (estado.completada) {
                 1f
             } else {
-                (estado.indiceActual + 1).toFloat() / estado.palabras.size
+                (estado.indiceActual + 1).toFloat() /
+                        estado.palabras.size
             }
+
             LinearProgressIndicator(
                 progress = { progreso },
                 modifier = Modifier.fillMaxWidth()
             )
 
             if (estado.completada) {
-                Text("🎉", fontSize = 70.sp)
+
+                // Lección completada
                 Text(
-                    if (aprendeTurco) "¡Lección completada!" else "Ders tamamlandı!",
+                    text = "🎉",
+                    fontSize = 70.sp
+                )
+
+                Text(
+                    text = if (aprendeTurco) {
+                        "¡Lección completada!"
+                    } else {
+                        "Ders tamamlandı!"
+                    },
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = oscuro
                 )
+
                 Text(
-                    if (aprendeTurco) "¡Aprendiste todas las palabras!" else "Tüm kelimeleri öğrendin!",
+                    text = if (aprendeTurco) {
+                        "¡Aprendiste todas las palabras!"
+                    } else {
+                        "Tüm kelimeleri öğrendin!"
+                    },
                     textAlign = TextAlign.Center,
                     color = oscuro
                 )
 
-                // Traducción de los mensajes del repositorio actual.
+                // Mostrar progreso guardado
                 mensajeGuardado?.let { mensaje ->
-                    val mensajeVisible = if (aprendeTurco) mensaje else when {
-                        mensaje.startsWith("Guardando") -> "İlerleme kaydediliyor..."
-                        mensaje.startsWith("✅") -> "✅ İlerleme kaydedildi"
-                        else -> "İlerleme kaydedilemedi. Dersi tekrar deneyebilirsin."
+
+                    val mensajeVisible = if (aprendeTurco) {
+                        mensaje
+                    } else {
+                        when {
+                            mensaje.startsWith("Guardando") ->
+                                "İlerleme kaydediliyor..."
+
+                            mensaje.startsWith("✅") ->
+                                "✅ İlerleme kaydedildi"
+
+                            else ->
+                                "İlerleme kaydedilemedi."
+                        }
                     }
-                    Text(mensajeVisible, textAlign = TextAlign.Center, color = oscuro)
+
+                    Text(
+                        text = mensajeVisible,
+                        textAlign = TextAlign.Center,
+                        color = oscuro
+                    )
                 }
 
-                Button(onClick = viewModel::reiniciarLeccion, modifier = Modifier.fillMaxWidth()) {
-                    Text(if (aprendeTurco) "Repetir lección" else "Dersi tekrarla")
-                }
-                Button(onClick = onAbrirJuego, modifier = Modifier.fillMaxWidth()) {
-                    Text(if (aprendeTurco) "🎮 Jugar y practicar" else "🎮 Oyna ve pratik yap")
-                }
-            } else {
-                estado.palabraActual?.let { palabra ->
+                // Repetir lección
+                Button(
+                    onClick = viewModel::reiniciarLeccion,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(
                         if (aprendeTurco) {
+                            "Repetir lección"
+                        } else {
+                            "Dersi tekrarla"
+                        }
+                    )
+                }
+
+                // Abrir juego
+                Button(
+                    onClick = onAbrirJuego,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        if (aprendeTurco) {
+                            "🎮 Jugar y practicar"
+                        } else {
+                            "🎮 Oyna ve pratik yap"
+                        }
+                    )
+                }
+
+            } else {
+
+                // Mostrar palabra actual
+                estado.palabraActual?.let { palabra ->
+
+                    Text(
+                        text = if (aprendeTurco) {
                             "Palabra ${estado.indiceActual + 1} de ${estado.palabras.size}"
                         } else {
                             "Kelime ${estado.indiceActual + 1} / ${estado.palabras.size}"
@@ -151,21 +276,44 @@ fun VocabularioScreen(
                         color = oscuro
                     )
 
-                    val palabraObjetivo = if (aprendeTurco) palabra.turco else palabra.espanol
-                    val traduccionNativa = if (aprendeTurco) palabra.espanol else palabra.turco
+                    val palabraObjetivo = if (aprendeTurco) {
+                        palabra.turco
+                    } else {
+                        palabra.espanol
+                    }
 
+                    val traduccionNativa = if (aprendeTurco) {
+                        palabra.espanol
+                    } else {
+                        palabra.turco
+                    }
+
+                    // Tarjeta de vocabulario
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color.White
+                        )
                     ) {
+
                         Column(
-                            modifier = Modifier.fillMaxWidth().padding(26.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(26.dp),
+
                             horizontalAlignment = Alignment.CenterHorizontally,
+
                             verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
-                            Text(palabra.emoji, fontSize = 78.sp)
-                            // Idioma que está aprendiendo: grande y protagonista.
+
+                            // Emoji de la palabra
+                            Text(
+                                text = palabra.emoji,
+                                fontSize = 78.sp
+                            )
+
+                            // Palabra en idioma objetivo
                             Text(
                                 text = palabraObjetivo,
                                 fontSize = 35.sp,
@@ -173,64 +321,137 @@ fun VocabularioScreen(
                                 color = turquesa,
                                 textAlign = TextAlign.Center
                             )
-                            // Idioma nativo: traducción para ayudar a comprender.
+
+                            // Traducción en idioma nativo
                             Text(
                                 text = traduccionNativa,
                                 fontSize = 19.sp,
                                 color = oscuro,
                                 textAlign = TextAlign.Center
                             )
+
+                            // BOTÓN DE PRONUNCIACIÓN
                             Button(
                                 onClick = {
-                                    // Pronuncia la palabra en el idioma que aprende.
-                                    errorPronunciacion = !ttsManager.hablar(
-                                        palabraObjetivo,
-                                        idiomaObjetivo
-                                    )
+                                    errorPronunciacion =
+                                        !ttsManager.hablar(
+                                            palabraObjetivo,
+                                            idiomaObjetivo
+                                        )
                                 },
-                                modifier = Modifier.fillMaxWidth().height(56.dp),
+
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+
                                 shape = RoundedCornerShape(18.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = turquesa)
+
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = turquesa
+                                )
                             ) {
                                 Text(
-                                    if (aprendeTurco) "🔊 Escuchar en turco" else "🔊 İspanyolca dinle",
+                                    text = if (aprendeTurco) {
+                                        "🔊 Escuchar en turco"
+                                    } else {
+                                        "🔊 İspanyolca dinle"
+                                    },
                                     color = Color.White
                                 )
                             }
+
+                            // Mostrar errores de pronunciación
                             if (errorPronunciacion) {
                                 Text(
-                                    if (aprendeTurco)
-                                        "La voz turca no está disponible. Revisa los idiomas de voz de Android."
-                                    else
-                                        "İspanyolca ses kullanılamıyor. Cihazın ses ayarlarını kontrol et.",
+                                    text = if (aprendeTurco) {
+                                        "La voz turca no está disponible."
+                                    } else {
+                                        "İspanyolca ses kullanılamıyor."
+                                    },
                                     color = Color(0xFFB33939),
                                     textAlign = TextAlign.Center
                                 )
                             }
+
+                            // ==================================
+                            // BOTÓN API REST SPRING BOOT
+                            // ==================================
+
+                            Button(
+                                onClick = {
+                                    viewModel.consultarTraduccionOnline(
+                                        palabra.espanol
+                                    )
+                                },
+
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+
+                                shape = RoundedCornerShape(18.dp),
+
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = turquesa
+                                )
+                            ) {
+                                Text(
+                                    text = "🌐 Consultar API REST",
+                                    color = Color.White
+                                )
+                            }
+
+                            // Mostrar traducción de Spring Boot
+                            if (traduccionApi.isNotBlank()) {
+                                Text(
+                                    text = "Traducción online: $traduccionApi",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = oscuro,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+
                         }
                     }
 
+                    // Navegación entre palabras
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+
                         OutlinedButton(
                             onClick = viewModel::anteriorPalabra,
                             enabled = estado.indiceActual > 0,
                             modifier = Modifier.weight(1f)
                         ) {
-                            Text(if (aprendeTurco) "Anterior" else "Önceki")
-                        }
-                        Button(
-                            onClick = { viewModel.siguientePalabra(avatar) },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            val ultima = estado.indiceActual == estado.palabras.lastIndex
                             Text(
                                 if (aprendeTurco) {
-                                    if (ultima) "Finalizar" else "Siguiente"
+                                    "Anterior"
                                 } else {
-                                    if (ultima) "Bitir" else "Sonraki"
+                                    "Önceki"
+                                }
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                viewModel.siguientePalabra(avatar)
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+
+                            val ultima =
+                                estado.indiceActual ==
+                                        estado.palabras.lastIndex
+
+                            Text(
+                                if (aprendeTurco) {
+                                    if (ultima) "Finalizar"
+                                    else "Siguiente"
+                                } else {
+                                    if (ultima) "Bitir"
+                                    else "Sonraki"
                                 }
                             )
                         }
@@ -239,12 +460,36 @@ fun VocabularioScreen(
             }
         }
 
-        Button(onClick = onAbrirCamara, modifier = Modifier.fillMaxWidth()) {
-            Text(if (aprendeTurco) "📷 Busca y fotografía" else "📷 Bul ve fotoğrafını çek")
+        // Cámara nativa
+        Button(
+            onClick = onAbrirCamara,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                if (aprendeTurco) {
+                    "📷 Busca y fotografía"
+                } else {
+                    "📷 Bul ve fotoğrafını çek"
+                }
+            )
         }
-        Spacer(modifier = Modifier.height(4.dp))
-        OutlinedButton(onClick = onVolver, modifier = Modifier.fillMaxWidth()) {
-            Text(if (aprendeTurco) "Volver a categorías" else "Kategorilere dön")
+
+        Spacer(
+            modifier = Modifier.height(4.dp)
+        )
+
+        // Volver a las categorías
+        OutlinedButton(
+            onClick = onVolver,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                if (aprendeTurco) {
+                    "Volver a categorías"
+                } else {
+                    "Kategorilere dön"
+                }
+            )
         }
     }
 }

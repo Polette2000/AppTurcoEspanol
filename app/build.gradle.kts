@@ -69,5 +69,8 @@ dependencies {
 
     // Animaciones
     implementation(libs.androidx.compose.animation)
+    // API REST con Retrofit
+    implementation("com.squareup.retrofit2:retrofit:3.0.0")
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
 
 }

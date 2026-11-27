@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.appturcoespanol.model.EvaluadorJuego
 
 class JuegoViewModel(
     private val progresoRepository: ProgresoRepository
@@ -85,23 +86,16 @@ class JuegoViewModel(
         _mensajeGuardado.value = null
     }
 
+
     fun responder(opcion: String) {
         _uiState.update { estado ->
-            val pregunta = estado.preguntaActual
-            if (pregunta == null || estado.finalizado ||
-                estado.respuestaSeleccionada != null ||
-                opcion !in pregunta.opciones
-            ) {
-                estado
-            } else {
-                estado.copy(
-                    respuestaSeleccionada = opcion,
-                    aciertos = estado.aciertos +
-                            if (opcion == pregunta.respuestaCorrecta) 1 else 0
-                )
-            }
+            EvaluadorJuego.responder(
+                estado = estado,
+                opcion = opcion
+            )
         }
     }
+
 
     fun siguientePregunta(avatar: Avatar) {
         val estado = _uiState.value
