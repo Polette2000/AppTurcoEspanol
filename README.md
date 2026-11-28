@@ -1,96 +1,208 @@
-# TurcoEspañol Kids 🇹🇷 🇪🇸
+# 🇹🇷 🇪🇸 TurcoEspañol Kids — EsTurk
 
-**Aplicación educativa para Android — EsTurk**
+**Aplicación educativa para el aprendizaje de español y turco**
 
-**Asignatura:** DSY1105 – Desarrollo de Aplicaciones Móviles
+**Asignatura:** DSY1105 – Desarrollo de Aplicaciones Móviles  
+**Institución:** Duoc UC  
+**Tipo de proyecto:** Aplicación móvil Android  
+**Estado:** Prototipo académico funcional, en validación final para el EFT.
 
-**Estado:** Prototipo académico funcional en proceso de validación final para el EFT.
+---
 
 ## 1. Descripción del proyecto
 
-TurcoEspañol Kids es una aplicación educativa para dispositivos Android, orientada a niñas y niños turcoparlantes menores de 10 años que están comenzando a aprender vocabulario en español.
+**TurcoEspañol Kids (EsTurk)** es una aplicación educativa para dispositivos Android, orientada principalmente a niñas y niños turcoparlantes menores de 10 años que están comenzando a aprender vocabulario básico en español.
 
-El proyecto se desarrolló utilizando Kotlin y Jetpack Compose, incorporando actividades interactivas, pronunciación de palabras, imágenes, juegos educativos y seguimiento del progreso.
+La aplicación busca facilitar el aprendizaje mediante actividades interactivas, recursos visuales, pronunciación de palabras, juegos educativos y seguimiento del progreso.
 
-La aplicación también permite consultar traducciones mediante una API REST propia desarrollada con Spring Boot.
+El proyecto está desarrollado en **Kotlin con Jetpack Compose**, utilizando una arquitectura MVVM para separar la interfaz de usuario, los datos y la lógica de negocio.
 
-## 2. Objetivo
+También incorpora recursos nativos de Android, consumo de una API REST propia desarrollada con Spring Boot, pruebas unitarias y un proceso de generación de APK firmado.
 
-Facilitar un primer acercamiento al idioma español mediante:
+## 2. Problema identificado
 
-- Aprendizaje de vocabulario por categorías.
-- Asociación de palabras en español y turco.
-- Pronunciación mediante voz sintetizada.
-- Juegos interactivos con retroalimentación.
-- Seguimiento del progreso educativo.
-- Actividades con recursos nativos de Android.
+El aprendizaje de un nuevo idioma durante la infancia puede resultar complejo cuando no se cuenta con herramientas adaptadas a la edad, el idioma de origen y las necesidades educativas de los estudiantes.
 
-El progreso se asocia a avatares ficticios, sin necesidad de recopilar datos personales de los niños.
+En particular, los niños turcoparlantes que comienzan a aprender español necesitan recursos visuales, auditivos e interactivos que faciliten la comprensión de palabras básicas.
 
-## 3. Funcionalidades implementadas
+**EsTurk** propone una solución móvil que permite practicar vocabulario de manera sencilla, utilizando imágenes, pronunciación y actividades lúdicas.
 
-**Bienvenida:** pantalla inicial para acceder a la aplicación.
+## 3. Objetivo general
 
-**Configuración de sesión:** selección de idioma y avatar infantil.
+Desarrollar una aplicación móvil educativa para Android que facilite el aprendizaje inicial del vocabulario español en niños turcoparlantes mediante actividades interactivas, recursos nativos del dispositivo y herramientas de seguimiento del aprendizaje.
 
-**Categorías:** aprendizaje de vocabulario mediante categorías como Animales, Colores y Frutas.
+### Objetivos específicos
 
-**Vocabulario:** tarjetas educativas con palabras, traducciones e imágenes representadas por emojis.
+- Implementar una interfaz educativa e intuitiva mediante Jetpack Compose.
+- Organizar el vocabulario en categorías temáticas.
+- Incorporar pronunciación de palabras mediante TextToSpeech.
+- Utilizar la cámara como recurso de apoyo visual.
+- Integrar una API REST para consultar traducciones.
+- Implementar actividades de juego que refuercen el aprendizaje.
+- Registrar el progreso educativo mediante almacenamiento local.
+- Aplicar pruebas unitarias sobre la lógica de negocio.
+- Preparar una versión release firmada para distribución.
 
-**Pronunciación:** reproducción de palabras en español mediante TextToSpeech.
+## 4. Público objetivo
 
-**Minijuego:** preguntas con alternativas, comprobación de respuestas, retroalimentación visual y puntuación.
+La aplicación está dirigida a niñas y niños turcoparlantes menores de 10 años que están iniciando el aprendizaje del español.
 
-**Progreso:** almacenamiento local de lecciones completadas y mejores puntajes por avatar y categoría.
+Se utiliza una interfaz con colores, elementos visuales, emojis, avatares y botones de fácil identificación.
 
-**Reinicio del progreso:** opción para reiniciar resultados, con confirmación previa.
+No es obligatorio proporcionar nombres reales ni fotografías personales para utilizar las actividades educativas.
 
-**Busca y fotografía:** utilización de la cámara del dispositivo para capturar imágenes y mostrar una vista previa temporal.
+## 5. Funcionalidades de la aplicación
 
-**Consulta API REST:** comunicación con un servidor Spring Boot para obtener traducciones.
+### 5.1 Pantalla de bienvenida
 
-## 4. Recursos nativos de Android
+Presenta la aplicación y permite iniciar el recorrido educativo.
 
-### 4.1 TextToSpeech (TTS)
+El usuario puede seleccionar su idioma antes de comenzar.
 
-Se utiliza la API nativa TextToSpeech de Android para reproducir la pronunciación en español de las palabras del vocabulario.
+### 5.2 Configuración de sesión
 
-**Estado:** funcionamiento comprobado en la aplicación.
+Permite seleccionar un avatar ficticio y establecer las preferencias iniciales de la sesión.
 
-### 4.2 Cámara
+Se utiliza una validación visual para confirmar las opciones seleccionadas.
 
-Se utiliza `ActivityResultContracts.TakePicturePreview()` para abrir la cámara del sistema y obtener una imagen en miniatura.
+### 5.3 Categorías educativas
 
-La fotografía se utiliza como apoyo visual dentro de la actividad. No se almacena permanentemente mediante esta funcionalidad.
+El vocabulario está organizado en categorías como:
 
-**Estado:** captura y visualización comprobadas.
+- Animales.
+- Colores.
+- Frutas.
 
-Estas dos funcionalidades permiten cumplir el requisito de incorporar al menos dos recursos nativos de Android.
+Cada categoría incluye palabras asociadas al aprendizaje de español y turco.
 
-## 5. Integración de API REST
+### 5.4 Vocabulario interactivo
 
-La aplicación consume una API REST propia desarrollada con Java y Spring Boot.
+Presenta tarjetas educativas con palabras, traducciones y representaciones visuales mediante emojis.
 
-**Tecnologías utilizadas:**
+El usuario puede avanzar y retroceder entre las palabras.
 
-- Spring Boot para el servidor backend.
-- API REST con respuestas JSON.
-- Retrofit para las consultas HTTP desde Android.
-- Kotlin para el procesamiento de las respuestas.
+También puede escuchar la pronunciación y consultar traducciones mediante la API REST.
 
-### Endpoint de traducción
+### 5.5 Pronunciación de palabras
 
-**Método:** GET
+Se utiliza TextToSpeech para reproducir palabras mediante el motor de voz del dispositivo Android.
 
-**Ruta:** `/api/traduccion`
+Esta funcionalidad proporciona apoyo auditivo al proceso de aprendizaje.
 
-**Parámetro:** `palabra`
+### 5.6 Juego educativo
 
-Ejemplo de consulta desde el computador:
+Incluye preguntas de selección múltiple para reforzar el vocabulario aprendido.
+
+El sistema permite:
+
+- Presentar preguntas.
+- Seleccionar respuestas.
+- Comprobar respuestas correctas e incorrectas.
+- Mostrar retroalimentación visual.
+- Calcular puntuaciones.
+- Finalizar la actividad.
+
+### 5.7 Registro del progreso
+
+La aplicación registra localmente información del aprendizaje, incluyendo lecciones completadas y mejores puntuaciones.
+
+El progreso se organiza por avatar y categoría.
+
+### 5.8 Reinicio del progreso
+
+Permite reiniciar el progreso del avatar seleccionado mediante una confirmación previa.
+
+### 5.9 Busca y fotografía
+
+Permite utilizar la cámara del dispositivo para tomar fotografías de objetos relacionados con el vocabulario aprendido.
+
+Las imágenes funcionan como apoyo visual dentro de la actividad.
+
+La aplicación no realiza reconocimiento automático de objetos.
+
+### 5.10 Consulta de API REST
+
+Permite consultar traducciones a través de un servidor Spring Boot.
+
+La respuesta recibida se muestra dentro de la aplicación como una traducción online.
+
+---
+
+## 6. Recursos nativos de Android
+
+La aplicación integra dos recursos nativos principales.
+
+### 6.1 TextToSpeech (TTS)
+
+**Tecnología:** API TextToSpeech de Android.
+
+**Finalidad:** reproducir palabras para apoyar la pronunciación y el aprendizaje.
+
+**Implementación:** integración con el motor de voz disponible en el dispositivo.
+
+**Prueba realizada:** reproducción de pronunciación desde la aplicación.
+
+**Resultado:** funcionamiento confirmado durante las pruebas funcionales.
+
+### 6.2 Cámara del dispositivo
+
+**Tecnología:** Activity Result API.
+
+Se utiliza:
+
+`ActivityResultContracts.TakePicturePreview()`
+
+**Finalidad:** permitir que los estudiantes fotografíen objetos relacionados con las categorías educativas.
+
+**Implementación:** apertura de la aplicación de cámara del sistema y recepción de una vista previa de la imagen.
+
+**Prueba realizada:** captura de fotografía y visualización dentro de EsTurk.
+
+**Resultado:** funcionamiento confirmado durante las pruebas funcionales.
+
+La imagen capturada mediante esta actividad es temporal y no se almacena permanentemente en DataStore.
+
+Para este flujo, basado en la actividad externa de cámara, no se requiere solicitar directamente el permiso `CAMERA`.
+
+---
+
+## 7. Consumo de API REST
+
+La aplicación integra una API REST propia desarrollada utilizando **Java y Spring Boot**.
+
+Esta API proporciona traducciones para apoyar el aprendizaje de vocabulario.
+
+### 7.1 Tecnologías utilizadas
+
+- Java.
+- Spring Boot.
+- Maven.
+- HTTP.
+- JSON.
+- Retrofit en Android.
+- Kotlin y corrutinas.
+
+### 7.2 Endpoint implementado
+
+**Método HTTP:** GET
+
+**Ruta:**
+
+`/api/traduccion`
+
+**Parámetro de consulta:**
+
+`palabra`
+
+### 7.3 Ejemplo de solicitud
+
+Desde el navegador del computador:
 
 `http://localhost:8080/api/traduccion?palabra=gato`
 
-Respuesta comprobada:
+### 7.4 Respuesta JSON obtenida
+
+Durante las pruebas se obtuvo:
 
 ```json
 {
@@ -99,192 +211,416 @@ Respuesta comprobada:
 }
 ```
 
-### Conexión desde Android
+La respuesta corresponde a la traducción de la palabra española "gato" al turco "kedi".
 
-En el emulador Android se utiliza:
+### 7.5 Configuración en Android
 
-`http://10.0.2.2:8080/`
+El cliente Retrofit utiliza la dirección:
 
-Esta dirección permite acceder al servidor Spring Boot que se encuentra ejecutándose en el computador anfitrión.
+```kotlin
+.baseUrl("http://10.0.2.2:8080/")
+```
 
-### Cómo ejecutar la API
+La dirección `10.0.2.2` permite que el emulador Android acceda al servidor que se ejecuta en el computador anfitrión.
 
-1. Abrir el proyecto backend `api-turco-espanol` en Visual Studio Code.
-2. Abrir una terminal en la carpeta donde está `pom.xml`.
-3. Ejecutar `.\mvnw.cmd spring-boot:run`.
-4. Comprobar que Spring Boot se inicie en el puerto 8080.
-5. Probar el endpoint desde el navegador.
-6. Mantener el servidor ejecutándose.
-7. Abrir EsTurk en el emulador Android.
-8. Entrar a Vocabulario y presionar **Consultar API REST**.
+Esta dirección no corresponde a un servidor público y requiere que el backend se encuentre ejecutándose localmente.
 
-**Resultado:** se verificó la respuesta JSON desde Chrome y se observó la traducción online dentro de la aplicación Android.
+### 7.6 Ejecución del backend
 
-**Limitación:** esta configuración requiere que el backend esté disponible en el computador anfitrión. No corresponde a una API desplegada públicamente en Internet.
+Para ejecutar el servidor:
 
-## 6. Pruebas unitarias
+1. Abrir Visual Studio Code.
+2. Abrir el proyecto `api-turco-espanol`.
+3. Ubicarse en la carpeta que contiene `pom.xml`.
+4. Abrir una terminal.
+5. Ejecutar:
 
-La aplicación utiliza JUnit para realizar pruebas de la lógica de negocio.
+```powershell
+.\mvnw.cmd spring-boot:run
+```
 
-**Archivo principal:** `LogicaNegocioTest.kt`
+6. Comprobar que Spring Boot se inicia en el puerto `8080`.
+7. Mantener el servidor ejecutándose mientras se utiliza la aplicación.
 
-Las pruebas cubren aspectos relacionados con:
+### 7.7 Pruebas realizadas
 
-- Validación de respuestas correctas.
-- Validación de respuestas incorrectas.
-- Manejo de respuestas vacías.
-- Cálculo de puntuaciones.
-- Prevención de puntuaciones duplicadas.
-- Finalización del juego.
-- Disponibilidad del vocabulario.
+**Prueba 1 — Inicio del servidor**
 
-### Ejecución
+Se ejecutó Spring Boot desde Visual Studio Code.
 
-Desde Android Studio se puede abrir `LogicaNegocioTest.kt` y seleccionar **Run 'LogicaNegocioTest'**.
+Resultado: servidor iniciado correctamente en el puerto 8080.
 
-También se pueden ejecutar las pruebas mediante:
+**Prueba 2 — Consulta desde navegador**
 
-`.\gradlew.bat testDebugUnitTest`
+Se utilizó Chrome para realizar una petición GET.
 
-### Resultado obtenido
+Resultado: respuesta JSON correcta con la traducción de `gato` a `kedi`.
 
-**8 pruebas aprobadas y 0 fallidas.**
+**Prueba 3 — Consumo desde Android**
 
-El resultado fue comprobado en Android Studio desde la rama `dev-darling`.
+Se ejecutó EsTurk en el emulador Android y se utilizó el botón **Consultar API REST**.
 
-**Pendiente:** repetir o confirmar la ejecución en la versión definitiva de la rama `master` para documentar la entrega final.
+Resultado: la aplicación mostró el mensaje **Traducción online: kedi**.
 
-## 7. Generación del APK firmado
-
-El proyecto contempla la generación de un APK firmado en modo release para su instalación y distribución.
-
-La firma está gestionada por una integrante del equipo.
-
-### Procedimiento
-
-1. Abrir el proyecto en Android Studio.
-2. Seleccionar **Build → Generate Signed Bundle / APK**.
-3. Elegir APK.
-4. Seleccionar el almacén de claves existente.
-5. Ingresar las credenciales de firma de forma segura.
-6. Seleccionar la variante release.
-7. Generar el APK.
-8. Verificar su firma e instalación en un dispositivo compatible.
-
-**Estado:** el equipo dispone de un almacén de claves, pero está pendiente documentar la verificación del APK release definitivo.
-
-Por seguridad, el archivo de claves y sus contraseñas no deben publicarse en GitHub.
-
-## 8. Tecnologías y arquitectura
-
-- Lenguaje: Kotlin.
-- Interfaz: Jetpack Compose y Material 3.
-- Navegación: Navigation Compose.
-- Arquitectura: MVVM.
-- Gestión de estado: StateFlow.
-- Persistencia local: DataStore Preferences.
-- Concurrencia: corrutinas de Kotlin.
-- Comunicación HTTP: Retrofit.
-- Backend: Java y Spring Boot.
-- Recursos nativos: TextToSpeech y Activity Result API.
-- Pruebas unitarias: JUnit.
-- Control de versiones: Git y GitHub.
-- Gestión del trabajo: Trello.
-
-### Estructura principal
-
-`app/src/main/java/com/example/appturcoespanol/`
-
-- `model/`: modelos de datos.
-- `navigation/`: rutas y navegación.
-- `network/`: comunicación con la API REST.
-- `repository/`: acceso a datos, traducciones y progreso.
-- `tts/`: gestión de TextToSpeech.
-- `ui/screens/`: pantallas de la aplicación.
-- `ui/theme/`: tema visual.
-- `viewmodel/`: lógica y estados de la interfaz.
-
-Las pruebas unitarias se encuentran en `app/src/test/`.
-
-## 9. Instalación y ejecución
-
-1. Clonar el repositorio desde GitHub.
-2. Abrir la carpeta raíz de AppTurcoEspanol en Android Studio.
-3. Esperar la sincronización de Gradle.
-4. Ejecutar **Build → Make Project**.
-5. Configurar un emulador Android o conectar un dispositivo compatible.
-6. Presionar **Run**.
-7. Seleccionar idioma y avatar.
-8. Explorar las categorías y funcionalidades educativas.
-
-Para utilizar la API REST local es necesario ejecutar también el backend Spring Boot.
-
-La cámara requiere una aplicación de cámara disponible y TextToSpeech necesita un motor de voz compatible con español.
-
-## 10. Almacenamiento y privacidad
-
-La aplicación utiliza DataStore Preferences para almacenar localmente el progreso educativo.
-
-Los resultados se relacionan con avatares ficticios y categorías de aprendizaje.
-
-No es necesario ingresar nombres ni fotografías personales para utilizar las actividades descritas.
-
-La actividad de cámara no realiza reconocimiento automático de imágenes ni envía fotografías al servidor.
-
-La vista previa se mantiene temporalmente en la actividad y no se incorpora a DataStore.
-
-## 11. Estado de las verificaciones
-
-| Comprobación | Estado |
-|---|---|
-| Compilación en Android Studio | Confirmada |
-| Pronunciación TextToSpeech | Comprobada |
-| Captura y vista previa de cámara | Comprobada |
-| Servidor Spring Boot | Comprobado |
-| Respuesta JSON de la API | Comprobada |
-| Traducción online en Android | Comprobada |
-| 8 pruebas unitarias en dev-darling | Aprobadas |
-| Pruebas unitarias en master final | Pendientes de confirmar |
-| Navegación funcional completa | Pendiente de documentar |
-| Persistencia del progreso | Pendiente de prueba documentada |
-| Reinicio independiente por avatar | Pendiente de prueba documentada |
-| APK firmado release | Pendiente de verificación final |
-
-## 12. Contexto educativo y alineación con el EFT
-
-TurcoEspañol Kids busca apoyar el aprendizaje inicial del español en niños turcoparlantes mediante un entorno visual e interactivo.
-
-La solución integra recursos nativos del dispositivo, consumo de una API REST propia, lógica de negocio sometida a pruebas unitarias y una arquitectura que separa la interfaz, los datos y la lógica de aplicación.
-
-El diseño utiliza avatares ficticios y almacenamiento local para reducir la necesidad de recopilar información personal.
-
-La validación definitiva frente a todos los parámetros del EFT requiere contrastar la aplicación con la pauta oficial de evaluación.
-
-## 13. Equipo de desarrollo
-
-- **Patience Agunanna**
-- **Ruth Honorio**
-- **Darling Pinol**
-
-**Docente:** Luis Becerra
-
-**Asignatura:** DSY1105 – Desarrollo de Aplicaciones Móviles
-
-**Tablero Trello:** https://trello.com/b/XyAIiJD7/applicaci%C3%B3n
-
-**Repositorio GitHub:** https://github.com/Polette2000/AppTurcoEspanol
-
-El equipo utiliza GitHub para administrar ramas, commits e integración de avances.
-
-## 14. Pendientes antes de la entrega
-
-- Confirmar las pruebas unitarias en la versión final de `master`.
-- Comprobar el APK release firmado y su instalación.
-- Completar las pruebas documentadas de navegación, persistencia y reinicio de progreso.
-- Incorporar capturas reales de las funcionalidades y resultados de pruebas.
-- Contrastar el proyecto con los parámetros específicos del EFT.
-- Verificar las instrucciones y la fecha de entrega de la asignatura.
+**Conclusión:** se comprobó el funcionamiento del backend y su integración con la aplicación móvil.
 
 ---
 
-**Proyecto académico — DSY1105, Desarrollo de Aplicaciones Móviles.**
+## 8. Arquitectura del proyecto
+
+La aplicación utiliza el patrón arquitectónico **MVVM (Model–View–ViewModel)**.
+
+Esta arquitectura permite separar las responsabilidades de la aplicación y facilitar su mantenimiento.
+
+### Model
+
+Contiene las estructuras de datos y los modelos utilizados por las funcionalidades.
+
+Incluye entidades relacionadas con vocabulario, preguntas, categorías, usuarios ficticios y estados.
+
+### View
+
+Corresponde a las pantallas construidas mediante Jetpack Compose.
+
+Gestiona la presentación de información y la interacción con el usuario.
+
+### ViewModel
+
+Administra los estados y coordina la lógica necesaria para las funcionalidades de la interfaz.
+
+### Repository
+
+Gestiona el acceso a información, recursos de vocabulario, persistencia y consultas a servicios externos.
+
+### Network
+
+Contiene los componentes relacionados con la comunicación HTTP y el consumo de la API REST.
+
+## 9. Tecnologías utilizadas
+
+| Tecnología | Finalidad |
+|---|---|
+| Kotlin | Desarrollo de la aplicación Android |
+| Jetpack Compose | Construcción de interfaces |
+| Material 3 | Componentes visuales |
+| Navigation Compose | Navegación entre pantallas |
+| MVVM | Organización de la arquitectura |
+| StateFlow | Gestión de estados |
+| DataStore Preferences | Persistencia local |
+| Corrutinas | Operaciones asíncronas |
+| Retrofit | Consumo de la API REST |
+| Spring Boot | Servidor backend |
+| Java | Implementación del backend |
+| Maven | Gestión del proyecto Spring Boot |
+| JUnit | Pruebas unitarias |
+| TextToSpeech | Pronunciación |
+| Activity Result API | Integración de cámara |
+| Git y GitHub | Control de versiones |
+| Trello | Organización del equipo |
+
+## 10. Estructura del proyecto
+
+La aplicación está organizada principalmente de la siguiente manera:
+
+```text
+AppTurcoEspanol/
+├── app/
+│   └── src/
+│       ├── main/
+│       │   ├── java/
+│       │   │   └── com/example/appturcoespanol/
+│       │   │       ├── model/
+│       │   │       ├── navigation/
+│       │   │       ├── network/
+│       │   │       ├── repository/
+│       │   │       ├── tts/
+│       │   │       ├── ui/
+│       │   │       │   ├── screens/
+│       │   │       │   └── theme/
+│       │   │       └── viewmodel/
+│       │   └── AndroidManifest.xml
+│       ├── test/
+│       │   └── java/
+│       │       └── com/example/appturcoespanol/
+│       │           ├── ExampleUnitTest.kt
+│       │           └── LogicaNegocioTest.kt
+│       └── androidTest/
+├── gradle/
+├── build.gradle.kts
+├── settings.gradle.kts
+├── gradlew.bat
+└── README.md
+```
+
+El backend Spring Boot se mantiene como proyecto independiente, con su propio código fuente, controlador REST y configuración Maven.
+
+---
+
+## 11. Pruebas unitarias
+
+Se implementaron pruebas unitarias mediante **JUnit** para verificar comportamientos relevantes de la lógica de negocio.
+
+### Archivo principal
+
+`LogicaNegocioTest.kt`
+
+### Funcionalidades evaluadas
+
+Las pruebas abarcan:
+
+- Respuestas correctas.
+- Respuestas incorrectas.
+- Respuestas sin seleccionar.
+- Cálculo de puntuaciones.
+- Control de respuestas repetidas.
+- Finalización de actividades.
+- Comportamiento de la lógica de juego.
+- Disponibilidad del vocabulario.
+
+### Ejecución desde Android Studio
+
+1. Abrir el proyecto Android.
+2. Ir a `app/src/test/java/com/example/appturcoespanol/`.
+3. Abrir `LogicaNegocioTest.kt`.
+4. Presionar el botón Run junto a la clase.
+5. Revisar los resultados.
+
+También se pueden ejecutar desde la terminal de la raíz del proyecto:
+
+```powershell
+.\gradlew.bat testDebugUnitTest
+```
+
+### Resultados obtenidos
+
+| Indicador | Resultado |
+|---|---|
+| Pruebas ejecutadas | 8 |
+| Pruebas aprobadas | 8 |
+| Pruebas fallidas | 0 |
+| Tiempo registrado | 37,7 segundos |
+| Rama comprobada | dev-darling |
+
+**Resultado:** las ocho pruebas unitarias finalizaron correctamente.
+
+La validación de la versión definitiva en `master` debe confirmarse si esta es la rama seleccionada para la entrega.
+
+---
+
+## 12. Pruebas funcionales
+
+Se realizaron verificaciones de las funcionalidades principales.
+
+| Funcionalidad | Resultado |
+|---|---|
+| Compilación en Android Studio | Correcta |
+| TextToSpeech | Comprobado |
+| Cámara y vista previa | Comprobado |
+| Inicio de Spring Boot | Comprobado |
+| Consulta REST desde Chrome | Comprobado |
+| Consumo REST desde Android | Comprobado |
+| Pruebas JUnit en dev-darling | 8 aprobadas |
+| Navegación completa | Pendiente de documentar |
+| Persistencia tras reiniciar la aplicación | Pendiente de documentar |
+| Reinicio independiente del progreso | Pendiente de documentar |
+| Instalación de APK release firmado | Pendiente de verificar |
+
+Las capturas de estas pruebas deben conservarse como evidencia de la entrega.
+
+---
+
+## 13. Generación de APK firmado (release)
+
+La distribución de la aplicación requiere generar una versión APK en modo release firmada digitalmente.
+
+### Procedimiento de generación
+
+1. Abrir AppTurcoEspanol en Android Studio.
+2. Seleccionar **Build → Generate Signed Bundle / APK**.
+3. Elegir la opción **APK**.
+4. Presionar **Next**.
+5. Seleccionar un almacén de claves existente.
+6. Introducir las credenciales de firma.
+7. Seleccionar la variante **release**.
+8. Generar el APK firmado.
+
+### Gestión de la firma
+
+El equipo cuenta con un archivo de almacén de claves proporcionado por una de sus integrantes.
+
+Las contraseñas y claves privadas deben mantenerse protegidas y no deben publicarse en GitHub.
+
+### Verificación pendiente
+
+Para cerrar este requisito se debe confirmar:
+
+- Que existe el archivo APK release definitivo.
+- Que la firma digital es válida.
+- Que el APK puede instalarse.
+- Que la aplicación funciona después de instalarla.
+
+La existencia del almacén de claves no constituye por sí sola evidencia de que el APK final ya haya sido firmado.
+
+---
+
+## 14. Instalación y ejecución de la aplicación
+
+### Requisitos
+
+- Android Studio.
+- Android SDK compatible con el proyecto.
+- JDK compatible con la configuración de Gradle.
+- Emulador Android o dispositivo físico compatible.
+- Conexión de red para las consultas REST.
+- Backend Spring Boot ejecutándose para utilizar la API local.
+
+### Instrucciones
+
+1. Clonar el repositorio:
+
+```bash
+git clone https://github.com/Polette2000/AppTurcoEspanol.git
+```
+
+2. Abrir la carpeta del proyecto en Android Studio.
+3. Esperar la sincronización de Gradle.
+4. Ejecutar **Build → Make Project**.
+5. Seleccionar un emulador o dispositivo Android.
+6. Presionar **Run**.
+7. Elegir el idioma inicial.
+8. Configurar un avatar.
+9. Seleccionar una categoría.
+10. Explorar vocabulario, juegos, pronunciación y cámara.
+
+Para probar las traducciones online, ejecutar previamente Spring Boot.
+
+En un teléfono físico, la dirección del backend debe configurarse para utilizar una IP accesible desde ese dispositivo o un servidor desplegado.
+
+---
+
+## 15. Persistencia y privacidad
+
+La aplicación utiliza DataStore Preferences para almacenar localmente el progreso educativo.
+
+La información se relaciona con avatares ficticios y categorías de aprendizaje.
+
+No se requiere registrar nombres reales de menores de edad.
+
+La actividad de cámara está orientada a fotografiar objetos, juguetes o dibujos.
+
+La vista previa de la fotografía es temporal y no se almacena como archivo permanente desde la funcionalidad descrita.
+
+La cámara no realiza reconocimiento automático de objetos ni envía fotografías al backend.
+
+Estas decisiones buscan reducir la recopilación innecesaria de información personal.
+
+---
+
+## 16. Alineación con los requisitos del EFT
+
+La aplicación fue desarrollada considerando los siguientes requisitos técnicos de la evaluación final transversal.
+
+| Requisito EFT | Implementación | Estado |
+|---|---|---|
+| Dos o más recursos nativos | Cámara y TextToSpeech | Comprobado |
+| Consumo de API externa | API REST propia con Spring Boot | Comprobado |
+| Pruebas unitarias | JUnit y lógica de negocio | 8 aprobadas |
+| APK firmado release | Proceso de firma con almacén de claves | Pendiente de verificación final |
+| Documentación técnica | README del proyecto | Documentado |
+| Contexto definido | Aplicación educativa de español y turco | Definido; falta contrastar con pauta completa |
+
+### Justificación del contexto
+
+EsTurk aborda una necesidad educativa mediante una solución móvil adaptada al aprendizaje inicial de vocabulario.
+
+Integra interacción visual, reproducción de pronunciación, actividades de práctica y seguimiento de avances.
+
+Los recursos nativos permiten enriquecer la experiencia de aprendizaje y la API REST complementa las consultas de traducción.
+
+Las pruebas unitarias ayudan a verificar el funcionamiento de la lógica de negocio.
+
+La aprobación definitiva de todos los aspectos del EFT depende de la pauta oficial y de completar las verificaciones pendientes.
+
+---
+
+## 17. Gestión y colaboración del equipo
+
+El proyecto utiliza Git y GitHub para el control de versiones.
+
+Se trabaja mediante ramas de desarrollo y commits para identificar los cambios realizados.
+
+Entre las ramas utilizadas se encuentran:
+
+- `master`
+- `dev-darling`
+- `dev-ruth`
+- `dev-polette`
+
+Los cambios de las ramas individuales pueden incorporarse a la rama principal mediante Pull Requests y revisión de código.
+
+### Herramientas colaborativas
+
+- GitHub: repositorio y control de versiones.
+- Trello: seguimiento y organización de tareas.
+- Android Studio: desarrollo de la aplicación móvil.
+- Visual Studio Code: desarrollo y ejecución de la API REST.
+
+## 18. Equipo de desarrollo
+
+**Integrantes:**
+
+- Patience Agunanna.
+- Ruth Honorio.
+- Darling Pinol.
+
+**Docente:** Luis Becerra.
+
+**Asignatura:** DSY1105 – Desarrollo de Aplicaciones Móviles.
+
+**Institución:** Duoc UC.
+
+### Enlaces del proyecto
+
+**Repositorio GitHub:**
+
+https://github.com/Polette2000/AppTurcoEspanol
+
+**Tablero Trello:**
+
+https://trello.com/b/XyAIiJD7/applicaci%C3%B3n
+
+---
+
+## 19. Evidencias de la entrega
+
+Se recomienda organizar las evidencias en las siguientes categorías:
+
+| Evidencia | Contenido |
+|---|---|
+| Evidencia 1 | TextToSpeech funcionando |
+| Evidencia 2 | Cámara y vista previa |
+| Evidencia 3 | Spring Boot ejecutándose |
+| Evidencia 4 | Respuesta JSON desde Chrome |
+| Evidencia 5 | Traducción online en Android |
+| Evidencia 6 | Resultado de las 8 pruebas JUnit |
+| Evidencia 7 | APK firmado e instalación |
+| Evidencia 8 | Pantallas y recorrido de la aplicación |
+| Evidencia 9 | Repositorio GitHub y colaboración |
+
+Las evidencias deben corresponder a ejecuciones reales del proyecto.
+
+## 20. Pendientes antes de la entrega final
+
+- Verificar la versión release firmada y su instalación.
+- Confirmar las pruebas unitarias sobre la rama definitiva `master`, si corresponde.
+- Comprobar que las modificaciones de las ramas de desarrollo estén integradas en la versión a entregar.
+- Documentar las pruebas funcionales restantes.
+- Incorporar las capturas exigidas por la pauta.
+- Revisar las condiciones específicas del EFT.
+- Verificar las instrucciones y fecha límite de entrega.
+
+---
+
+**TurcoEspañol Kids — EsTurk**  
+**Proyecto académico de Desarrollo de Aplicaciones Móviles**  
+**Duoc UC — DSY1105**
